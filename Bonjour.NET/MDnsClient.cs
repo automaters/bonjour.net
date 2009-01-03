@@ -33,6 +33,13 @@ namespace Network.Bonjour
         public bool IsStarted { get; set; }
 
         public event ObjectEvent<Message> AnswerReceived;
+        public event ObjectEvent<Message> QueryReceived;
+
+        public void Send(Message message, IPEndPoint ep)
+        {
+            byte[] byteMessage = message.ToByteArray();
+            client.Send(byteMessage, byteMessage.Length, ep);
+        }
 
         public void Resolve(string protocol)
         {
@@ -41,8 +48,7 @@ namespace Network.Bonjour
             requestId = (short)(guid[0] * byte.MaxValue + guid[1]);
             message.ID = requestId;
             message.Questions.Add(new Question(protocol));
-            byte[] byteMessage = message.ToByteArray();
-            client.Send(byteMessage, byteMessage.Length, EndPoint);
+            Send(message, EndPoint);
         }
 
         public static MDnsClient CreateAndResolve(string protocol)
@@ -71,16 +77,27 @@ namespace Network.Bonjour
             result.AsyncWaitHandle.WaitOne();
             IPEndPoint src = new IPEndPoint(IPAddress.Any, 0);
             byte[] response = client.EndReceive(result, ref src);
-            active.Set();
-            Treat(response);
+            Treat(response, src);
         }
 
-        protected void Treat(byte[] bytes)
+        protected void Treat(byte[] bytes, IPEndPoint from)
         {
             Message m = Message.FromBytes(bytes);
-            if ((m.ID == requestId && m.QueryResponse != Qr.Query) || m.ID == 0)
+            m.From = from;
+            short requestId = this.requestId;
+            active.Set();
+            if ((m.ID == requestId && m.QueryResponse == Qr.Answer) || m.ID == 0)
+            {
                 if (AnswerReceived != null)
                     AnswerReceived(m);
+            }
+            if ((m.ID != requestId && m.QueryResponse == Qr.Query) || m.ID == 0)
+            {
+                this.requestId = 0;
+                if (QueryReceived != null)
+                    QueryReceived(m);
+            }
+
         }
 
         public void Stop()

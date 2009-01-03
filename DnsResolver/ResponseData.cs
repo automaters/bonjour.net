@@ -102,7 +102,10 @@ namespace Network.Dns
 
         public override byte[] ToBytes()
         {
-            return Address.GetAddressBytes();
+            List<byte> bytes = new List<byte>();
+            bytes.AddRange(Message.ToBytes((short)4));
+            bytes.AddRange(Address.GetAddressBytes());
+            return bytes.ToArray();
         }
 
         public override string ToString()
@@ -116,7 +119,10 @@ namespace Network.Dns
 
         public override byte[] ToBytes()
         {
-            throw new NotImplementedException();
+            List<byte> bytes = new List<byte>();
+            bytes.AddRange(DomainName.ToBytes());
+            bytes.InsertRange(0, Message.ToBytes((short)bytes.Count));
+            return bytes.ToArray();
         }
 
         internal static Ptr FromBytes(byte[] bytes, ref int index)
@@ -135,7 +141,13 @@ namespace Network.Dns
     {
         public override byte[] ToBytes()
         {
-            throw new NotImplementedException();
+            List<byte> bytes = new List<byte>();
+            bytes.AddRange(Message.ToBytes(Priority));
+            bytes.AddRange(Message.ToBytes(Weight));
+            bytes.AddRange(Message.ToBytes(Port));
+            bytes.AddRange(Target.ToBytes());
+            bytes.InsertRange(0, Message.ToBytes((short)bytes.Count));
+            return bytes.ToArray();
         }
 
         public short Priority { get; set; }
@@ -173,7 +185,16 @@ namespace Network.Dns
 
         public override byte[] ToBytes()
         {
-            throw new NotImplementedException();
+            short length = 0;
+            List<byte> bytes = new List<byte>();
+            foreach (KeyValuePair<string, string> kvp in Properties)
+            {
+                byte[] kvpBytes = Encoding.UTF8.GetBytes(kvp.Key + "=" + kvp.Value);
+                bytes.AddRange(kvpBytes);
+                length += (short)kvpBytes.Length;
+            }
+            bytes.InsertRange(0, Message.ToBytes(length));
+            return bytes.ToArray();
         }
 
         public const string True = "true";
@@ -200,7 +221,7 @@ namespace Network.Dns
             return false;
         }
 
-        public IDictionary<string, string> Properties { get; private set; }
+        public IDictionary<string, string> Properties { get; set; }
 
         internal static Txt FromBytes(byte[] bytes, ref int index)
         {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net;
 
 namespace Network.Dns
 {
@@ -14,6 +15,8 @@ namespace Network.Dns
             Authorities = new List<Answer>();
             Additionals = new List<Answer>();
         }
+
+        public IPEndPoint From { get; set; }
 
         public Qr QueryResponse { get; set; }
 
@@ -41,9 +44,9 @@ namespace Network.Dns
             get { return (short)Answers.Count; }
         }
 
-        public short AuthorityEntries { get; set; }
+        public short AuthorityEntries { get { return (short)Authorities.Count; } }
 
-        public short AdditionalEntries { get; set; }
+        public short AdditionalEntries { get { return (short)Additionals.Count; } }
 
         public byte[] ToByteArray()
         {
@@ -53,7 +56,7 @@ namespace Network.Dns
             //Qr, Opcode, Aa, Tc, Rd
             byte b = 0;
             b += (byte)QueryResponse;
-            b = (byte)(b << 5);
+            b = (byte)(b << 4);
             b += (byte)OpCode;
             b = (byte)(b << 1);
             b += (AuthoritativeAnswer) ? (byte)1 : (byte)0;
@@ -74,9 +77,13 @@ namespace Network.Dns
             bytes.AddRange(ToBytes(AuthorityEntries));
             bytes.AddRange(ToBytes(AdditionalEntries));
             foreach (Question q in Questions)
-            {
                 bytes.AddRange(q.ToBytes());
-            }
+            foreach (Answer a in Answers)
+                bytes.AddRange(a.ToBytes());
+            foreach (Answer a in Authorities)
+                bytes.AddRange(a.ToBytes());
+            foreach (Answer a in Additionals)
+                bytes.AddRange(a.ToBytes());
             return bytes.ToArray();
         }
 

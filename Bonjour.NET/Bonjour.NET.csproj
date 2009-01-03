@@ -51,11 +51,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DnsResolver\DnsResolver.csproj">
+    <ProjectReference Include="..\DnsResolver\DnsResolver.csproj">
       <Project>{36528547-53DC-46CD-8C97-1BAE69262B00}</Project>
       <Name>DnsResolver</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Services.NET.csproj">
+    <ProjectReference Include="..\SD\Services.NET.csproj">
       <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>
       <Name>Services.NET</Name>
     </ProjectReference>

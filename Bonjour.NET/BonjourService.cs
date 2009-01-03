@@ -30,6 +30,7 @@ namespace Network.Bonjour
         }
 
         MDnsClient resolver;
+        MDnsClient publisher;
         AutoResetEvent resolved = new AutoResetEvent(false);
 
         public void Resolve()
@@ -125,6 +126,10 @@ namespace Network.Bonjour
             get { return new ReadOnlyCollection<Network.Dns.EndPoint>(addresses); }
         }
 
+        public void AddAddress(Network.Dns.EndPoint endpoint)
+        {
+            addresses.Add(endpoint);
+        }
 
         public string Name { get; set; }
 
@@ -142,6 +147,50 @@ namespace Network.Bonjour
 
         public void Publish()
         {
+            publisher = new MDnsClient(new IPEndPoint(IPAddress.Any, 5353));
+            publisher.QueryReceived += new ObjectEvent<Message>(publisher_QueryReceived);
+            publisher.Start();
+            Message m = new Message();
+            m.From = MDnsClient.EndPoint;
+            m.QueryResponse = Qr.Answer;
+            m.OpCode = OpCode.Query;
+            m.AuthoritativeAnswer = true;
+            m.ID = 0;
+            m.ResponseCode = ResponseCode.NoError;
+            foreach (Network.Dns.EndPoint ep in Addresses)
+            {
+                foreach (var address in ep.Addresses)
+                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = HostName, Ttl = 5, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
+                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 5, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
+                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 5, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
+                m.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
+            }
+
+            publisher.Send(m, m.From);
+        }
+
+        void publisher_QueryReceived(Message item)
+        {
+            if (item.QueryResponse == Qr.Query)
+            {
+                foreach (Question q in item.Questions)
+                {
+                    if (((string)q.DomainName).EndsWith(Protocol))
+                    {
+                        foreach (Network.Dns.EndPoint ep in Addresses)
+                        {
+                            foreach (var address in ep.Addresses)
+                            {
+                                item.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
+                            }
+                            item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
+                            item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
+                        }
+
+                        publisher.Send(item, item.From);
+                    }
+                }
+            }
         }
 
         public void Stop()
@@ -149,6 +198,7 @@ namespace Network.Bonjour
             if (resolver != null)
                 resolver.Stop();
             resolved.Set();
+            publisher.Stop();
         }
 
         public override string ToString()
