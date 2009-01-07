@@ -5,13 +5,13 @@ using Network.Dns;
 
 namespace Network.ZeroConf
 {
-    public interface IService
+    public interface IService : IExpirable
     {
         DomainName HostName { get; }
         IList<EndPoint> Addresses { get; }
         string Protocol { get; set; }
         string Name { get; set; }
-        string this[string key] { get; }
+        string this[string key] { get; set; }
         State State { get; }
         bool IsOutDated { get; }
         void Publish();

@@ -14,14 +14,17 @@ namespace Network.Dns
 
         public DomainName DomainName { get; set; }
 
-        public short Port { get; set; }
+        public ushort Port { get; set; }
 
         public IList<IPAddress> Addresses { get; set; }
 
         public void Resolve(Answer a)
         {
             if (a.Type == Type.SRV)
+            {
                 DomainName = ((Srv)a.ResponseData).Target;
+                Port = ((Srv)a.ResponseData).Port;
+            }
             if (a.Type == Type.A || a.Type == Type.AAAA)
             {
                 IPAddress address = ((HostAddress)a.ResponseData).Address;

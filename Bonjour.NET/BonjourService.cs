@@ -97,7 +97,7 @@ namespace Network.Bonjour
                     if (Protocol == null)
                         Protocol = new DomainName(a.DomainName.Skip(1));
                     if (addresses.Count == 0)
-                        addresses.Add(new Network.Dns.EndPoint() { DomainName = HostName });
+                        AddAddress(new Network.Dns.EndPoint() { DomainName = HostName, Port = ((Srv)a.ResponseData).Port });
                     break;
                 default:
                     break;
@@ -142,6 +142,15 @@ namespace Network.Bonjour
                 if (properties.ContainsKey(key))
                     return properties[key];
                 return Txt.False;
+            }
+            set
+            {
+                if (properties.ContainsKey(key))
+                {
+                    properties[key] = value;
+                }
+                else
+                    properties.Add(key, value);
             }
         }
 
@@ -198,7 +207,8 @@ namespace Network.Bonjour
             if (resolver != null)
                 resolver.Stop();
             resolved.Set();
-            publisher.Stop();
+            if (publisher != null)
+                publisher.Stop();
         }
 
         public override string ToString()
@@ -218,7 +228,7 @@ namespace Network.Bonjour
             List<IService> services = new List<IService>();
             foreach (Answer a in m.Answers)
             {
-                if (a.Type == Network.Dns.Type.SRV || (a.Type == Network.Dns.Type.PTR && a.Ttl == 0))
+                if (a.Type == Network.Dns.Type.PTR)
                     services.Add(Build(a, m));
                 else
                     foreach (Service s in services.Where(s => a.DomainName[0] == s.Name))
@@ -226,7 +236,7 @@ namespace Network.Bonjour
             }
             foreach (Answer a in m.Authorities)
             {
-                if (a.Type == Network.Dns.Type.SRV)
+                if (a.Type == Network.Dns.Type.PTR)
                     services.Add(Build(a, m));
                 else
                     foreach (Service s in services.Where(s => a.DomainName[0] == s.Name))
@@ -252,12 +262,21 @@ namespace Network.Bonjour
             return s;
         }
 
-        protected void Renew(int ttl)
+        public uint Ttl
         {
-            if (expiration == DateTime.MinValue)
-                expiration = DateTime.Now.AddSeconds(ttl);
-            else
-                expiration = expiration.AddSeconds(ttl);
+            get
+            {
+                int seconds = (int)expiration.Subtract(DateTime.Now).TotalSeconds;
+                if (seconds < 0)
+                    return 0;
+                return (uint)seconds;
+            }
+        }
+
+
+        public void Renew(uint ttl)
+        {
+            expiration = DateTime.Now.AddSeconds(ttl);
         }
 
         #region IService Members
@@ -268,13 +287,13 @@ namespace Network.Bonjour
             if (iService is Service)
             {
                 Service service = (Service)iService;
-                foreach (var endpoint in Addresses)
+                foreach (var endpoint in service.addresses)
                 {
-                    var newEndPoint = service.addresses.SingleOrDefault(ep => ep.DomainName.ToString() == endpoint.DomainName.ToString() && ep.Port == endpoint.Port);
+                    var newEndPoint = addresses.SingleOrDefault(ep => ep.DomainName.ToString() == endpoint.DomainName.ToString() && ep.Port == endpoint.Port);
                     if (newEndPoint != null)
-                        endpoint.Merge(newEndPoint);
+                        newEndPoint.Merge(endpoint);
                     else
-                        addresses.Add(endpoint);
+                        AddAddress(endpoint);
                 }
             }
         }

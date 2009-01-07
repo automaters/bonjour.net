@@ -10,15 +10,15 @@ namespace Network.Dns
         public DomainName DomainName { get; set; }
         public Type Type { get; set; }
         public Class Class { get; set; }
-        public int Ttl { get; set; }
+        public uint Ttl { get; set; }
         public ResponseData ResponseData { get; set; }
 
         public byte[] ToBytes()
         {
             List<byte> bytes = new List<byte>();
             bytes.AddRange(DomainName.ToBytes());
-            bytes.AddRange(Message.ToBytes((short)Type));
-            bytes.AddRange(Message.ToBytes((short)Class));
+            bytes.AddRange(Message.ToBytes((ushort)Type));
+            bytes.AddRange(Message.ToBytes((ushort)Class));
             bytes.AddRange(Message.ToBytes(Ttl));
             bytes.AddRange(ResponseData.ToBytes());
             return bytes.ToArray();
@@ -28,14 +28,14 @@ namespace Network.Dns
         {
             Answer a = new Answer();
             a.DomainName = DomainName.FromBytes(bytes, ref index);
-            short s;
+            ushort s;
             Message.FromBytes(bytes, index, out s);
             a.Type = (Type)s;
             index += 2;
             Message.FromBytes(bytes, index, out s);
             a.Class = (Class)s;
             index += 2;
-            int ttl;
+            uint ttl;
             Message.FromBytes(bytes, index, out ttl);
             a.Ttl = ttl;
             index += 4;

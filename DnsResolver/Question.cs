@@ -43,8 +43,8 @@ namespace Network.Dns
         {
             List<byte> bytes = new List<byte>();
             bytes.AddRange(DomainName.ToBytes());
-            bytes.AddRange(Message.ToBytes((short)Type));
-            bytes.AddRange(Message.ToBytes((short)Class));
+            bytes.AddRange(Message.ToBytes((ushort)Type));
+            bytes.AddRange(Message.ToBytes((ushort)Class));
             return bytes.ToArray();
         }
 
@@ -52,7 +52,7 @@ namespace Network.Dns
         {
             Question q = new Question();
             q.DomainName = DomainName.FromBytes(bytes, ref index);
-            short s;
+            ushort s;
             Message.FromBytes(bytes, index, out s);
             index += 2;
             q.Type = (QType)s;

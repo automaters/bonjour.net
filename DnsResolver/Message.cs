@@ -20,7 +20,7 @@ namespace Network.Dns
 
         public Qr QueryResponse { get; set; }
 
-        public short ID { get; set; }
+        public ushort ID { get; set; }
 
         public OpCode OpCode { get; set; }
 
@@ -34,19 +34,19 @@ namespace Network.Dns
 
         public ResponseCode ResponseCode { get; set; }
 
-        public short QuestionEntries
+        public ushort QuestionEntries
         {
-            get { return (short)Questions.Count; }
+            get { return (ushort)Questions.Count; }
         }
 
-        public short AnswerEntries
+        public ushort AnswerEntries
         {
-            get { return (short)Answers.Count; }
+            get { return (ushort)Answers.Count; }
         }
 
-        public short AuthorityEntries { get { return (short)Authorities.Count; } }
+        public ushort AuthorityEntries { get { return (ushort)Authorities.Count; } }
 
-        public short AdditionalEntries { get { return (short)Additionals.Count; } }
+        public ushort AdditionalEntries { get { return (ushort)Additionals.Count; } }
 
         public byte[] ToByteArray()
         {
@@ -88,7 +88,7 @@ namespace Network.Dns
         }
 
 
-        internal static byte[] ToBytes(int i)
+        internal static byte[] ToBytes(uint i)
         {
             byte[] bytes = new byte[4];
             bytes[0] = (byte)(i % (byte.MaxValue + 1));
@@ -101,11 +101,11 @@ namespace Network.Dns
             return bytes;
         }
 
-        internal static byte[] ToBytes(short s)
+        internal static byte[] ToBytes(ushort s)
         {
             byte[] bytes = new byte[2];
             bytes[1] = (byte)(s % (byte.MaxValue + 1));
-            s = (short)(s >> 8);
+            s = (ushort)(s >> 8);
             bytes[0] = (byte)(s % (byte.MaxValue + 1));
             return bytes;
         }
@@ -120,24 +120,24 @@ namespace Network.Dns
             return result;
         }
 
-        internal static void FromBytes(byte[] bytes, int offset, out short s)
+        internal static void FromBytes(byte[] bytes, int offset, out ushort s)
         {
-            s = (short)LongFromBytes(bytes, offset, 2);
+            s = (ushort)LongFromBytes(bytes, offset, 2);
         }
 
-        internal static void FromBytes(byte[] bytes, out short s)
+        internal static void FromBytes(byte[] bytes, out ushort s)
         {
             FromBytes(bytes, 0, out s);
         }
 
-        internal static void FromBytes(byte[] bytes, out int i)
+        internal static void FromBytes(byte[] bytes, out uint i)
         {
             FromBytes(bytes, 0, out i);
         }
 
-        internal static void FromBytes(byte[] bytes, int offset, out int i)
+        internal static void FromBytes(byte[] bytes, int offset, out uint i)
         {
-            i = (int)LongFromBytes(bytes, offset, 4);
+            i = (uint)LongFromBytes(bytes, offset, 4);
         }
 
         public IList<Question> Questions { get; set; }
@@ -148,7 +148,7 @@ namespace Network.Dns
         public static Message FromBytes(byte[] bytes)
         {
             Message m = new Message();
-            short id;
+            ushort id;
             int index = 0;
             FromBytes(bytes, out id);
             m.ID = id;
@@ -170,7 +170,7 @@ namespace Network.Dns
             m.RecursionAvailable = b > 127;
             b = (byte)((b << 1) >> 1);
             m.ResponseCode = (ResponseCode)b;
-            short questionEntryCount, answerEntryCount, authorityEntryCount, additionalEntryCount;
+            ushort questionEntryCount, answerEntryCount, authorityEntryCount, additionalEntryCount;
             FromBytes(new byte[] { bytes[index++], bytes[index++] }, out questionEntryCount);
             FromBytes(new byte[] { bytes[index++], bytes[index++] }, out answerEntryCount);
             FromBytes(new byte[] { bytes[index++], bytes[index++] }, out authorityEntryCount);

@@ -30,12 +30,12 @@ namespace Network.Dns
             if (bytes[index] >> 6 == 3)
             {
                 //In case of pointer
-                short ptr;
+                ushort ptr;
                 bytes[index] -= 3 << 6;
                 Message.FromBytes(bytes, index, out ptr);
                 bytes[index] += 3 << 6;
                 index += 2;
-                ptr = (short)(ptr << 2 >> 2);
+                ptr = (ushort)(ptr << 2 >> 2);
                 int iPtr = ptr;
                 return FromBytes(bytes, ref iPtr);
             }

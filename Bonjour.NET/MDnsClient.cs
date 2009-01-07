@@ -17,7 +17,7 @@ namespace Network.Bonjour
         private UdpClient client;
         private IPEndPoint local;
         //private int lockTimes = 0;
-        private short requestId;
+        private ushort requestId;
 
         public MDnsClient(IPEndPoint endpoint)
         {
@@ -45,7 +45,7 @@ namespace Network.Bonjour
         {
             Message message = new Message();
             List<byte> guid = Guid.NewGuid().ToByteArray().Take(2).ToList();
-            requestId = (short)(guid[0] * byte.MaxValue + guid[1]);
+            requestId = (ushort)(guid[0] * byte.MaxValue + guid[1]);
             message.ID = requestId;
             message.Questions.Add(new Question(protocol));
             Send(message, EndPoint);
@@ -82,22 +82,30 @@ namespace Network.Bonjour
 
         protected void Treat(byte[] bytes, IPEndPoint from)
         {
-            Message m = Message.FromBytes(bytes);
+            Message m;
+            try
+            {
+                m = Message.FromBytes(bytes);
+            }
+            catch (Exception)
+            {
+                //BadRequestReceived
+                return;
+            }
             m.From = from;
-            short requestId = this.requestId;
+            ushort requestId = this.requestId;
             active.Set();
             if ((m.ID == requestId && m.QueryResponse == Qr.Answer) || m.ID == 0)
             {
                 if (AnswerReceived != null)
                     AnswerReceived(m);
             }
-            if ((m.ID != requestId && m.QueryResponse == Qr.Query) || m.ID == 0)
+            if ((m.ID != requestId || m.ID == 0) && m.QueryResponse == Qr.Query)
             {
                 this.requestId = 0;
                 if (QueryReceived != null)
                     QueryReceived(m);
             }
-
         }
 
         public void Stop()

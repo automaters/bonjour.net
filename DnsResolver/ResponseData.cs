@@ -68,14 +68,14 @@ namespace Network.Dns
         public override byte[] ToBytes()
         {
             List<byte> bytes = new List<byte>();
-            bytes.AddRange(Message.ToBytes((short)Encoding.UTF8.GetByteCount(CNAME)));
+            bytes.AddRange(Message.ToBytes((ushort)Encoding.UTF8.GetByteCount(CNAME)));
             bytes.AddRange(Encoding.UTF8.GetBytes(CNAME));
             return bytes.ToArray();
         }
 
         internal static CName FromBytes(byte[] bytes, ref int index)
         {
-            short byteCount;
+            ushort byteCount;
             Message.FromBytes(bytes, index, out byteCount);
             index += 2;
             CName cName = new CName();
@@ -91,7 +91,7 @@ namespace Network.Dns
 
         internal static HostAddress FromBytes(byte[] bytes, ref int index)
         {
-            short byteCount;
+            ushort byteCount;
             Message.FromBytes(bytes, index, out byteCount);
             index += 2;
             HostAddress ha = new HostAddress();
@@ -103,7 +103,7 @@ namespace Network.Dns
         public override byte[] ToBytes()
         {
             List<byte> bytes = new List<byte>();
-            bytes.AddRange(Message.ToBytes((short)4));
+            bytes.AddRange(Message.ToBytes((ushort)4));
             bytes.AddRange(Address.GetAddressBytes());
             return bytes.ToArray();
         }
@@ -121,14 +121,14 @@ namespace Network.Dns
         {
             List<byte> bytes = new List<byte>();
             bytes.AddRange(DomainName.ToBytes());
-            bytes.InsertRange(0, Message.ToBytes((short)bytes.Count));
+            bytes.InsertRange(0, Message.ToBytes((ushort)bytes.Count));
             return bytes.ToArray();
         }
 
         internal static Ptr FromBytes(byte[] bytes, ref int index)
         {
             Ptr p = new Ptr();
-            short byteCount;
+            ushort byteCount;
             Message.FromBytes(bytes, index, out byteCount);
             index += 2;
             p.DomainName = DomainName.FromBytes(bytes, ref index);
@@ -146,19 +146,19 @@ namespace Network.Dns
             bytes.AddRange(Message.ToBytes(Weight));
             bytes.AddRange(Message.ToBytes(Port));
             bytes.AddRange(Target.ToBytes());
-            bytes.InsertRange(0, Message.ToBytes((short)bytes.Count));
+            bytes.InsertRange(0, Message.ToBytes((ushort)bytes.Count));
             return bytes.ToArray();
         }
 
-        public short Priority { get; set; }
-        public short Weight { get; set; }
-        public short Port { get; set; }
+        public ushort Priority { get; set; }
+        public ushort Weight { get; set; }
+        public ushort Port { get; set; }
         public DomainName Target { get; set; }
 
         internal static Srv FromBytes(byte[] bytes, ref int index)
         {
             Srv srv = new Srv();
-            short s;
+            ushort s;
             //Useless Datalength
             Message.FromBytes(bytes, index, out s);
             index += 2;
@@ -190,10 +190,11 @@ namespace Network.Dns
             foreach (KeyValuePair<string, string> kvp in Properties)
             {
                 byte[] kvpBytes = Encoding.UTF8.GetBytes(kvp.Key + "=" + kvp.Value);
+                bytes.Add((byte)kvpBytes.Length);
                 bytes.AddRange(kvpBytes);
                 length += (short)kvpBytes.Length;
             }
-            bytes.InsertRange(0, Message.ToBytes(length));
+            bytes.InsertRange(0, Message.ToBytes((uint)length));
             return bytes.ToArray();
         }
 
@@ -226,7 +227,7 @@ namespace Network.Dns
         internal static Txt FromBytes(byte[] bytes, ref int index)
         {
             Txt txt = new Txt();
-            short byteCount;
+            ushort byteCount;
             //Useless Datalength
             Message.FromBytes(bytes, index, out byteCount);
             index += 2;
