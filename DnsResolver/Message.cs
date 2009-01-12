@@ -91,13 +91,13 @@ namespace Network.Dns
         internal static byte[] ToBytes(uint i)
         {
             byte[] bytes = new byte[4];
-            bytes[0] = (byte)(i % (byte.MaxValue + 1));
-            i = i >> 8;
-            bytes[1] = (byte)(i % (byte.MaxValue + 1));
+            bytes[3] = (byte)(i % (byte.MaxValue + 1));
             i = i >> 8;
             bytes[2] = (byte)(i % (byte.MaxValue + 1));
             i = i >> 8;
-            bytes[3] = (byte)(i % (byte.MaxValue + 1));
+            bytes[1] = (byte)(i % (byte.MaxValue + 1));
+            i = i >> 8;
+            bytes[0] = (byte)(i % (byte.MaxValue + 1));
             return bytes;
         }
 

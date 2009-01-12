@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Net;
 
 namespace Network.Rest
 {
@@ -12,7 +13,21 @@ namespace Network.Rest
             Headers = new Dictionary<string, string>();
             Encoding = Encoding.UTF8;
             Uri = "*";
+            Body = new MemoryStream();
         }
+
+        public HttpMessage(string uriString) : this(new Uri(uriString)) { }
+        public HttpMessage(Uri uri)
+            : this()
+        {
+            Uri = uri.PathAndQuery;
+            if (uri.Port > 0)
+                Host = uri.Host + ":" + uri.Port;
+            else
+                Host = uri.Host;
+        }
+
+        public MemoryStream Body { get; protected set; }
 
         public string Uri { get; set; }
 
@@ -20,13 +35,15 @@ namespace Network.Rest
 
         public Encoding Encoding { get; set; }
 
-        public string Method { get; set; }
+
 
         public string Host
         {
             get
             {
-                return Headers["Host"];
+                if (Headers.ContainsKey("Host"))
+                    return Headers["Host"];
+                return null;
             }
             set
             {
@@ -46,31 +63,7 @@ namespace Network.Rest
 
         protected const char SPACE = ' ';
 
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(Method);
-            sb.Append(SPACE);
-            sb.Append(Uri);
-            sb.Append(SPACE);
-            switch (HttpVersion)
-            {
-                case HttpVersion.HTTP11:
-                    sb.Append("HTTP/1.1");
-                    break;
-                default:
-                    break;
-            }
-            sb.AppendLine();
-            sb.AppendLine(string.Format("HOST:{0}", Host));
-            foreach (KeyValuePair<string, string> header in Headers)
-            {
-                if (header.Key != "Host")
-                    sb.AppendLine(string.Format("{0}:{1}", header.Key, header.Value));
-            }
-            sb.AppendLine();
-            return sb.ToString();
-        }
+
 
         protected void ReadHeaders(StringReader reader)
         {

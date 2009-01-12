@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 using System.IO;
+using System.Net.Sockets;
 
 namespace Network.Rest
 {
     public class HttpRequest : HttpMessage
     {
-        public HttpRequest()
-        {
-            Headers = new Dictionary<string, string>();
-            Uri = "*";
-        }
+        public HttpRequest() { }
+
+        public HttpRequest(string uriString) : base(uriString) { }
+        public HttpRequest(Uri uri) : base(uri) { }
+
+        public string Method { get; set; }
 
         public static HttpRequest FromBytes(byte[] bytes)
         {
@@ -32,5 +34,87 @@ namespace Network.Rest
             request.ReadHeaders(reader);
             return request;
         }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(Method);
+            sb.Append(SPACE);
+            sb.Append(Uri);
+            sb.Append(SPACE);
+            switch (HttpVersion)
+            {
+                case HttpVersion.HTTP11:
+                    sb.Append("HTTP/1.1");
+                    break;
+                default:
+                    break;
+            }
+            sb.AppendLine();
+            if (Host != null)
+                sb.AppendLine(string.Format("Host: {0}", Host));
+            if (Body.Length > 0)
+                Headers["Content-Length"] = Body.Length.ToString();
+            foreach (KeyValuePair<string, string> header in Headers)
+            {
+                if (header.Key != "Host")
+                    sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value));
+            }
+            sb.AppendLine();
+            if (Body.Length > 0)
+            {
+                Body.Seek(0, SeekOrigin.Begin);
+                StreamReader reader = new StreamReader(Body);
+                sb.Append(reader.ReadToEnd());
+                //reader.Close();
+                sb.AppendLine();
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        public TransportProtocol Protocol { get; set; }
+
+        public HttpResponse GetResponse()
+        {
+            if (Protocol == TransportProtocol.TCP)
+            {
+                TcpClient client = new TcpClient();
+                Uri uri = new Uri(Uri);
+                client.Connect(uri.Host, uri.Port != 0 ? uri.Port : 80);
+                Uri = Uri.Substring(Uri.IndexOf('/', Uri.IndexOf(uri.Host)));
+                byte[] requestBytes = GetBytes();
+                Uri = uri.ToString();
+                client.GetStream().Write(requestBytes, 0, requestBytes.Length);
+                MemoryStream stream = new MemoryStream();
+                NetworkStream clientStream = client.GetStream();
+                do
+                {
+                    byte[] buffer = new byte[1024];
+                    int lengthRead = clientStream.Read(buffer, 0, 1024);
+                    stream.Write(buffer, 0, lengthRead);
+                } while (clientStream.DataAvailable);
+                return HttpResponse.FromBytes(stream.ToArray());
+            }
+            if (Protocol == TransportProtocol.UDP)
+            {
+                UdpClient client = new UdpClient();
+                Uri uri = new Uri(Uri);
+                client.Connect(uri.Host, uri.Port != 0 ? uri.Port : 80);
+                byte[] requestBytes = GetBytes();
+                client.Send(requestBytes, requestBytes.Length);
+                byte[] responseBytes = new byte[client.Available - requestBytes.Length];
+                MemoryStream stream = new MemoryStream();
+                System.Net.IPEndPoint ep = new System.Net.IPEndPoint(System.Net.IPAddress.Any, 0);
+                return HttpResponse.FromBytes(client.Receive(ref ep));
+            }
+            return null;
+        }
+    }
+
+    public enum TransportProtocol
+    {
+        TCP,
+        UDP
     }
 }

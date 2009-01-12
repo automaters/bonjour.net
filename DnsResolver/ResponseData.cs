@@ -185,16 +185,17 @@ namespace Network.Dns
 
         public override byte[] ToBytes()
         {
-            short length = 0;
+            ushort length = 0;
             List<byte> bytes = new List<byte>();
             foreach (KeyValuePair<string, string> kvp in Properties)
             {
                 byte[] kvpBytes = Encoding.UTF8.GetBytes(kvp.Key + "=" + kvp.Value);
                 bytes.Add((byte)kvpBytes.Length);
                 bytes.AddRange(kvpBytes);
-                length += (short)kvpBytes.Length;
+                length += (ushort)kvpBytes.Length;
+                length++;
             }
-            bytes.InsertRange(0, Message.ToBytes((uint)length));
+            bytes.InsertRange(0, Message.ToBytes(length));
             return bytes.ToArray();
         }
 

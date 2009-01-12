@@ -49,17 +49,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bonjour.NET\Bonjour.NET.csproj">
+    <ProjectReference Include="..\Bonjour.NET\Network.Bonjour.csproj">
       <Project>{CA2E95A3-CF9D-4524-85FC-12CAD9D81479}</Project>
-      <Name>Bonjour.NET</Name>
+      <Name>Network.Bonjour</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SD\Services.NET.csproj">
+    <ProjectReference Include="..\SD\Network.ZeroConf.csproj">
       <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>
-      <Name>Services.NET</Name>
+      <Name>Network.ZeroConf</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DnsResolver\DnsResolver.csproj">
+    <ProjectReference Include="..\DnsResolver\Network.Dns.csproj">
       <Project>{36528547-53DC-46CD-8C97-1BAE69262B00}</Project>
-      <Name>DnsResolver</Name>
+      <Name>Network.Dns</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

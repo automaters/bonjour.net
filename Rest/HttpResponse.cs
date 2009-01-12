@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Net;
+using System.Xml;
 
 namespace Network.Rest
 {
@@ -10,7 +11,6 @@ namespace Network.Rest
     {
         public HttpResponse()
         {
-            Body = new MemoryStream();
         }
 
         public static HttpResponse FromBytes(byte[] bytes)
@@ -20,7 +20,23 @@ namespace Network.Rest
 
         public HttpStatusCode ResponseCode { get; set; }
         public string ResponseMessage { get; set; }
-        public Stream Body { get; protected set; }
+
+        protected XmlDocument document = null;
+
+        public XmlDocument Document
+        {
+            get
+            {
+                if (document == null)
+                {
+                    document = new XmlDocument();
+                    if (Body.Length > 0)
+                        document.Load(Body);
+                }
+                return document;
+            }
+        }
+
 
         private static HttpResponse Parse(string responseString)
         {
@@ -31,8 +47,12 @@ namespace Network.Rest
             //VERSION RESPONSECODE RESPONSEMESSAGE
             response.HttpVersion = HttpVersion.HTTP11;
             response.ResponseCode = (HttpStatusCode)int.Parse(firstLine[1]);
-            response.ResponseMessage = firstLine[2];
+            response.ResponseMessage = string.Join(" ", firstLine, 2, firstLine.Length - 2);
             response.ReadHeaders(reader);
+            StreamWriter sw = new StreamWriter(response.Body);
+            while (!string.IsNullOrEmpty(line = reader.ReadLine()))
+                sw.WriteLine(line);
+            response.Body.Seek(0, SeekOrigin.Begin);
             return response;
         }
 
@@ -45,8 +65,12 @@ namespace Network.Rest
                 if (header.Key != "Host")
                     sb.AppendLine(string.Format("{0}:{1}", header.Key, header.Value));
             }
-            sb.Append("Body");
-            sb.Append(Encoding.UTF8.GetString(((MemoryStream)Body).ToArray()));
+            sb.AppendLine();
+            StreamReader sr = new StreamReader(Body);
+            while (!sr.EndOfStream)
+                sb.AppendLine(sr.ReadLine());
+            Body.Seek(0, SeekOrigin.Begin);
+            sb.AppendLine();
             sb.AppendLine();
             return sb.ToString();
         }

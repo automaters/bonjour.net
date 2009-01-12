@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{2B2D41E0-DBC7-4075-873C-394D02448281}</ProjectGuid>
+    <ProjectGuid>{39E23211-B902-4FE9-8A61-264F81D63864}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Network.ZeroConf</RootNamespace>
-    <AssemblyName>Services.NET</AssemblyName>
+    <RootNamespace>Network.UPnP</RootNamespace>
+    <AssemblyName>UPnP</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -35,21 +35,34 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HubServiceResolver.cs" />
-    <Compile Include="IExpirable.cs" />
-    <Compile Include="IService.cs" />
+    <Compile Include="SsdpClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IServiceResolver.cs" />
-    <Compile Include="TtlCollection.cs" />
+    <Compile Include="Service.cs" />
+    <Compile Include="ServiceResolver.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DnsResolver\DnsResolver.csproj">
+    <ProjectReference Include="..\DnsResolver\Network.Dns.csproj">
       <Project>{36528547-53DC-46CD-8C97-1BAE69262B00}</Project>
-      <Name>DnsResolver</Name>
+      <Name>Network.Dns</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Rest\Network.Rest.csproj">
+      <Project>{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}</Project>
+      <Name>Network.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SD\Network.ZeroConf.csproj">
+      <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>
+      <Name>Network.ZeroConf</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

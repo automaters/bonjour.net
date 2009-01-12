@@ -1,19 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services.NET", "SD\Services.NET.csproj", "{2B2D41E0-DBC7-4075-873C-394D02448281}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.ZeroConf", "SD\Network.ZeroConf.csproj", "{2B2D41E0-DBC7-4075-873C-394D02448281}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bonjour.NET", "Bonjour.NET\Bonjour.NET.csproj", "{CA2E95A3-CF9D-4524-85FC-12CAD9D81479}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Bonjour", "Bonjour.NET\Network.Bonjour.csproj", "{CA2E95A3-CF9D-4524-85FC-12CAD9D81479}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mDNSReader", "mDNSReader\mDNSReader.csproj", "{C9E6CE87-C7FF-4CAB-BCCA-94B5B7AA71BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnsResolver", "DnsResolver\DnsResolver.csproj", "{36528547-53DC-46CD-8C97-1BAE69262B00}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Dns", "DnsResolver\Network.Dns.csproj", "{36528547-53DC-46CD-8C97-1BAE69262B00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UPnP", "UPnP\UPnP.csproj", "{39E23211-B902-4FE9-8A61-264F81D63864}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.UPnP.Services", "UPnP\Network.UPnP.Services.csproj", "{39E23211-B902-4FE9-8A61-264F81D63864}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UPnPReader", "UPnPReader\UPnPReader.csproj", "{5E066080-8EC9-47B8-A1D3-171D06829484}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest", "Rest\Rest.csproj", "{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rest", "Rest\Network.Rest.csproj", "{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.UPnP.DLNA", "DLNA\Network.UPnP.DLNA.csproj", "{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

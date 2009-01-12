@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{CA2E95A3-CF9D-4524-85FC-12CAD9D81479}</ProjectGuid>
+    <ProjectGuid>{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Network.Bonjour</RootNamespace>
-    <AssemblyName>Bonjour.NET</AssemblyName>
+    <RootNamespace>Network.UPnP.DLNA</RootNamespace>
+    <AssemblyName>Network.UPnP.DLNA</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -45,19 +45,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BonjourService.cs" />
-    <Compile Include="BonjourServiceResolver.cs" />
-    <Compile Include="MDnsClient.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="ContentDirectory\Browse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DnsResolver\DnsResolver.csproj">
-      <Project>{36528547-53DC-46CD-8C97-1BAE69262B00}</Project>
-      <Name>DnsResolver</Name>
+    <ProjectReference Include="..\Rest\Network.Rest.csproj">
+      <Project>{3FFE9D8C-3914-4DD1-BB7C-8D4359216806}</Project>
+      <Name>Network.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SD\Services.NET.csproj">
-      <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>
-      <Name>Services.NET</Name>
+    <ProjectReference Include="..\UPnP\Network.UPnP.Services.csproj">
+      <Project>{39E23211-B902-4FE9-8A61-264F81D63864}</Project>
+      <Name>Network.UPnP.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
