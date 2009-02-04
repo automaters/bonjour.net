@@ -94,5 +94,15 @@ namespace Network.UPnP
         }
 
         #endregion
+
+        #region IServiceResolver Members
+
+
+        public IList<IService> Resolve(string protocol, TimeSpan timeout, int minCountServices, int maxCountServices)
+        {
+            return new ResolverHelper().Resolve(this, protocol, timeout, minCountServices, maxCountServices);
+        }
+
+        #endregion
     }
 }

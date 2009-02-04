@@ -45,6 +45,7 @@ namespace Network.Dns
             bytes.AddRange(DomainName.ToBytes());
             bytes.AddRange(Message.ToBytes((ushort)Type));
             bytes.AddRange(Message.ToBytes((ushort)Class));
+            //bytes.AddRange(Message.ToBytes((ushort)(((ushort)(ushort.MaxValue >> 15 << 15)) + (ushort)Class)));
             return bytes.ToArray();
         }
 

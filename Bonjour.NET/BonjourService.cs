@@ -18,7 +18,20 @@ namespace Network.Bonjour
             addresses = new List<Network.Dns.EndPoint>();
         }
 
-        public DomainName HostName { get; set; }
+        private DomainName hostName;
+        public DomainName HostName
+        {
+            get
+            {
+                return hostName;
+            }
+            set
+            {
+                hostName = value;
+                if (value != null && needsToBeResolvedLater)
+                    Resolve();
+            }
+        }
         protected DateTime expiration;
         public State State { get; set; }
         public bool IsOutDated { get { return DateTime.Now > expiration; } }
@@ -32,12 +45,19 @@ namespace Network.Bonjour
         MDnsClient resolver;
         MDnsClient publisher;
         AutoResetEvent resolved = new AutoResetEvent(false);
+        bool needsToBeResolvedLater = false;
 
         public void Resolve()
         {
             if (resolver != null)
                 resolver.Stop();
 
+            if (HostName == null)
+            {
+                needsToBeResolvedLater = true;
+                return;
+            }
+            needsToBeResolvedLater = false;
             resolver = MDnsClient.CreateAndResolve(HostName);
             resolver.AnswerReceived += client_AnswerReceived;
             resolver.Start();
@@ -169,10 +189,10 @@ namespace Network.Bonjour
             foreach (Network.Dns.EndPoint ep in Addresses)
             {
                 foreach (var address in ep.Addresses)
-                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = HostName, Ttl = 120, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
-                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 120, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
-                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 120, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
-                m.Authorities.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 120, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
+                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = HostName, Ttl = 500, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
+                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 500, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
+                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 500, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
+                m.Authorities.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 500, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
             }
 
             publisher.Send(m, m.From);
@@ -295,6 +315,18 @@ namespace Network.Bonjour
                     else
                         AddAddress(endpoint);
                 }
+            }
+        }
+
+        #endregion
+
+        #region IEnumerable<KeyValuePair<string,string>> Members
+
+        public IEnumerable<KeyValuePair<string, string>> Properties
+        {
+            get
+            {
+                return properties;
             }
         }
 

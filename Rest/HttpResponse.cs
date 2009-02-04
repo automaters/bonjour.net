@@ -11,6 +11,7 @@ namespace Network.Rest
     {
         public HttpResponse()
         {
+            ResponseCode = HttpStatusCode.OK;
         }
 
         public static HttpResponse FromBytes(byte[] bytes)
@@ -50,8 +51,7 @@ namespace Network.Rest
             response.ResponseMessage = string.Join(" ", firstLine, 2, firstLine.Length - 2);
             response.ReadHeaders(reader);
             StreamWriter sw = new StreamWriter(response.Body);
-            while (!string.IsNullOrEmpty(line = reader.ReadLine()))
-                sw.WriteLine(line);
+            sw.Write(reader.ReadToEnd());
             response.Body.Seek(0, SeekOrigin.Begin);
             return response;
         }

@@ -35,7 +35,19 @@ namespace Network.Rest
 
         public Encoding Encoding { get; set; }
 
-
+        public virtual int ContentLength
+        {
+            get
+            {
+                if (Headers.ContainsKey("Content-Length"))
+                    return int.Parse(Headers["Content-Length"]);
+                return 0;
+            }
+            set
+            {
+                Headers["Content-Length"] = value.ToString();
+            }
+        }
 
         public string Host
         {

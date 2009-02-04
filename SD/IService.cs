@@ -7,11 +7,13 @@ namespace Network.ZeroConf
 {
     public interface IService : IExpirable
     {
-        DomainName HostName { get; }
+        DomainName HostName { get; set; }
         IList<EndPoint> Addresses { get; }
+        void AddAddress(EndPoint ep);
         string Protocol { get; set; }
         string Name { get; set; }
         string this[string key] { get; set; }
+        IEnumerable<KeyValuePair<string, string>> Properties { get; }
         State State { get; }
         bool IsOutDated { get; }
         void Publish();

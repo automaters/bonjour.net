@@ -12,5 +12,6 @@ namespace Network.ZeroConf
         event ObjectEvent<IService> ServiceFound;
         event ObjectEvent<IService> ServiceRemoved;
         void Resolve(string protocol);
+        IList<IService> Resolve(string protocol, TimeSpan timeout, int minCountServices, int maxCountServices);
     }
 }

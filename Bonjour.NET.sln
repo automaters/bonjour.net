@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rest", "Rest\Networ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.UPnP.DLNA", "DLNA\Network.UPnP.DLNA.csproj", "{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEF.Bonjour", "MEF.Bonjour\MEF.Bonjour.csproj", "{94D114DE-DA48-4060-9B7A-3059BF75E87D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MEF.Bonjour.Tests", "MEF.Bonjour.Tests\MEF.Bonjour.Tests.csproj", "{770EE8FF-624F-445F-A6ED-B29E2DAFA591}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +59,14 @@ Global
 		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BF16D75-B05B-48AF-A72D-5CDDC861DFD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94D114DE-DA48-4060-9B7A-3059BF75E87D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94D114DE-DA48-4060-9B7A-3059BF75E87D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94D114DE-DA48-4060-9B7A-3059BF75E87D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94D114DE-DA48-4060-9B7A-3059BF75E87D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{770EE8FF-624F-445F-A6ED-B29E2DAFA591}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{770EE8FF-624F-445F-A6ED-B29E2DAFA591}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{770EE8FF-624F-445F-A6ED-B29E2DAFA591}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{770EE8FF-624F-445F-A6ED-B29E2DAFA591}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

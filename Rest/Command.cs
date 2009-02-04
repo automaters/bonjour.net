@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using System.Net;
 
 namespace Network.Rest
 {
@@ -12,6 +13,12 @@ namespace Network.Rest
             Uri = new Uri(connectionString);
         }
 
+        public Command(HttpRequest request)
+        {
+        }
+
+        public abstract void Initialize(HttpRequest request);
+
         public Uri Uri { get; protected set; }
 
         protected string Method { get; set; }
@@ -19,6 +26,8 @@ namespace Network.Rest
         protected virtual HttpRequest BuildRequest()
         {
             HttpRequest request = new HttpRequest(Uri);
+            request.KeepAlive = true;
+            request.ContentType = "text/xml";
             request.Method = Method;
             return request;
         }
@@ -28,12 +37,21 @@ namespace Network.Rest
         public virtual HttpResponse GetHttpResponse()
         {
             HttpRequest request = GetRequest();
-            return request.GetResponse();
+            return (HttpResponse)request.GetResponse();
         }
+
+        XmlDocument doc = new XmlDocument();
+        bool docLoaded = false;
 
         public XmlDocument GetResponse()
         {
-            return GetHttpResponse().Document;
+            if (!docLoaded)
+            {
+                HttpResponse response = GetHttpResponse();
+                docLoaded = true;
+                doc.Load(response.Body);
+            }
+            return doc;
         }
     }
 }

@@ -103,8 +103,9 @@ namespace Network.Dns
         public override byte[] ToBytes()
         {
             List<byte> bytes = new List<byte>();
-            bytes.AddRange(Message.ToBytes((ushort)4));
-            bytes.AddRange(Address.GetAddressBytes());
+            byte[] address = Address.GetAddressBytes();
+            bytes.AddRange(Message.ToBytes((ushort)address.Length));
+            bytes.AddRange(address);
             return bytes.ToArray();
         }
 

@@ -20,7 +20,9 @@ namespace Network.UPnP
 
         public Network.Dns.DomainName HostName { get; set; }
 
-        public IList<Network.Dns.EndPoint> Addresses { get; set; }
+        public IList<Network.Dns.EndPoint> Addresses { get; private set; }
+
+        public void AddAddress(Network.Dns.EndPoint ep) { Addresses.Add(ep); }
 
         public string Protocol
         {
@@ -39,7 +41,7 @@ namespace Network.UPnP
             get
             {
                 //if (properties.ContainsKey(key))
-                    return properties[key];
+                return properties[key];
                 //return Txt.False;
             }
             set
@@ -190,6 +192,18 @@ namespace Network.UPnP
         public void Renew(uint ttl)
         {
             expiration = DateTime.Now.AddSeconds(ttl);
+        }
+
+        #endregion
+
+        #region IEnumerable<KeyValuePair<string,string>> Members
+
+        public IEnumerable<KeyValuePair<string, string>> Properties
+        {
+            get
+            {
+                return properties;
+            }
         }
 
         #endregion

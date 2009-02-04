@@ -48,10 +48,16 @@ namespace Network.Bonjour
             {
                 client = MDnsClient.CreateAndResolve(protocol);
                 client.AnswerReceived += client_AnswerReceived;
-                client.Start();
             }
             else
                 client.Resolve(protocol);
+            if (!client.IsStarted)
+                client.Start();
+        }
+
+        public IList<IService> Resolve(string protocol, TimeSpan timeout, int minCountServices, int maxCountServices)
+        {
+            return new ResolverHelper().Resolve(this, protocol, timeout, minCountServices, maxCountServices);
         }
 
         void client_AnswerReceived(Message m)

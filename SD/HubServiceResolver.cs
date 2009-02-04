@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Network.ZeroConf
 {
@@ -44,6 +45,11 @@ namespace Network.ZeroConf
         public void Resolve(string protocol)
         {
             resolvers.ForEach(delegate(IServiceResolver resolver) { resolver.Resolve(protocol); });
+        }
+
+        public IList<IService> Resolve(string protocol, TimeSpan timeout, int minCountServices, int maxCountServices)
+        {
+            return new ResolverHelper().Resolve(this, protocol, timeout, 0, 10);
         }
 
         #endregion

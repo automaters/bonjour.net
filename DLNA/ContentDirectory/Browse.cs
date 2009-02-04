@@ -5,12 +5,18 @@ using System.Text;
 using Network.Rest;
 using System.IO;
 using System.Xml.Linq;
+using System.Net;
 
 namespace DLNA.ContentDirectory
 {
     public class Browse : Command
     {
         public Browse(string connectionString) : base(connectionString) { }
+
+        public override void Initialize(HttpRequest request)
+        {
+            throw new NotImplementedException();
+        }
 
         protected override HttpRequest GetRequest()
         {
@@ -31,7 +37,7 @@ namespace DLNA.ContentDirectory
                         new XElement(contentDirectory + "StartingIndex", new XAttribute(dt + "dt", "ui4"), "0"),
                         new XElement(contentDirectory + "RequestedCount", new XAttribute(dt + "dt", "ui4"), "200"),
                         new XElement(contentDirectory + "SortCriteria", new XAttribute(dt + "dt", "string"), "")))));
-            request.Headers["Content-Length"] = (request.Body.Length).ToString();
+            //request.Headers["Content-Length"] = (request.ContentType.Length).ToString();
             return request;
         }
     }

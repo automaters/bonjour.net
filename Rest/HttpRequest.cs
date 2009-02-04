@@ -32,7 +32,34 @@ namespace Network.Rest
             request.Uri = firstLine[1];
             request.HttpVersion = HttpVersion.HTTP11;
             request.ReadHeaders(reader);
+            request.Host = request.Host.Trim();
             return request;
+        }
+
+        public override int ContentLength
+        {
+            get
+            {
+                if (Body.Length > 0 && Headers.ContainsKey("Content-Length"))
+                    return (int)Body.Length;
+                return base.ContentLength;
+            }
+            set
+            {
+                base.ContentLength = value;
+            }
+        }
+
+        public bool KeepAlive
+        {
+            get { return Headers["KeepAlive"] == "true"; }
+            set { Headers["KeepAlive"] = value.ToString(); }
+        }
+
+        public string ContentType
+        {
+            get { return (string)Headers["Content-Type"]; }
+            set { Headers["Content-Type"] = value; }
         }
 
         public override string ToString()
@@ -77,12 +104,12 @@ namespace Network.Rest
 
         public HttpResponse GetResponse()
         {
+            Uri uri = new Uri("http://" + Host + Uri);
             if (Protocol == TransportProtocol.TCP)
             {
                 TcpClient client = new TcpClient();
-                Uri uri = new Uri(Uri);
                 client.Connect(uri.Host, uri.Port != 0 ? uri.Port : 80);
-                Uri = Uri.Substring(Uri.IndexOf('/', Uri.IndexOf(uri.Host)));
+                //Uri = Uri.Substring(Uri.IndexOf('/', Uri.IndexOf(uri.Host)));
                 byte[] requestBytes = GetBytes();
                 Uri = uri.ToString();
                 client.GetStream().Write(requestBytes, 0, requestBytes.Length);
@@ -99,12 +126,9 @@ namespace Network.Rest
             if (Protocol == TransportProtocol.UDP)
             {
                 UdpClient client = new UdpClient();
-                Uri uri = new Uri(Uri);
                 client.Connect(uri.Host, uri.Port != 0 ? uri.Port : 80);
                 byte[] requestBytes = GetBytes();
                 client.Send(requestBytes, requestBytes.Length);
-                byte[] responseBytes = new byte[client.Available - requestBytes.Length];
-                MemoryStream stream = new MemoryStream();
                 System.Net.IPEndPoint ep = new System.Net.IPEndPoint(System.Net.IPAddress.Any, 0);
                 return HttpResponse.FromBytes(client.Receive(ref ep));
             }

@@ -16,6 +16,16 @@
     </StartupObject>
     <TargetFrameworkSubset>
     </TargetFrameworkSubset>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>rest.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,16 +45,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command.cs" />
+    <Compile Include="CommandDescriptor.cs" />
+    <Compile Include="CommandFactory.cs" />
     <Compile Include="HttpMessage.cs" />
     <Compile Include="HttpResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HttpRequest.cs" />
+    <Compile Include="RestServer.cs" />
+    <Compile Include="RestTask.cs" />
+    <Compile Include="UdpRestServer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="rest.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
