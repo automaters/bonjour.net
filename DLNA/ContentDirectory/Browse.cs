@@ -40,5 +40,10 @@ namespace DLNA.ContentDirectory
             //request.Headers["Content-Length"] = (request.ContentType.Length).ToString();
             return request;
         }
+
+        public override void Execute(RequestEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -31,6 +31,12 @@ namespace Network.Rest
             IsStarted = false;
         }
 
+        public void Restart()
+        {
+            Stop();
+            Start();
+        }
+
         protected virtual void OnStart()
         {
             if (Started != null)

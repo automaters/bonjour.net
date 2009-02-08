@@ -53,5 +53,7 @@ namespace Network.Rest
             }
             return doc;
         }
+
+        public abstract void Execute(RequestEventArgs e);
     }
 }

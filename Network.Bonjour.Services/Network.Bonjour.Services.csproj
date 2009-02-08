@@ -5,13 +5,14 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{94D114DE-DA48-4060-9B7A-3059BF75E87D}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{8CC2B14D-E24B-41A8-AB93-17F130905E29}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MEF.Bonjour</RootNamespace>
-    <AssemblyName>MEF.Bonjour</AssemblyName>
+    <RootNamespace>Network.Bonjour.Pear</RootNamespace>
+    <AssemblyName>Network.Bonjour.Pear</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <StartupObject>Network.Bonjour.Services.Pear.AirDiskService</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -39,14 +40,19 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Catalog.cs" />
+    <Compile Include="Pear\AirDiskService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServicePart.cs" />
-    <Compile Include="ServicePartDefinition.cs" />
+    <Compile Include="WebDav.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bonjour.NET\Network.Bonjour.csproj">
