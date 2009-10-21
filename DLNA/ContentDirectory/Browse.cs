@@ -6,6 +6,7 @@ using Network.Rest;
 using System.IO;
 using System.Xml.Linq;
 using System.Net;
+using Network;
 
 namespace DLNA.ContentDirectory
 {
@@ -13,7 +14,7 @@ namespace DLNA.ContentDirectory
     {
         public Browse(string connectionString) : base(connectionString) { }
 
-        public override void Initialize(HttpRequest request)
+        public override Command<HttpRequestEventArgs, HttpRequest, HttpResponse> Initialize(HttpRequest request, IServiceProvider provider)
         {
             throw new NotImplementedException();
         }
@@ -41,7 +42,7 @@ namespace DLNA.ContentDirectory
             return request;
         }
 
-        public override void Execute(RequestEventArgs e)
+        public override void Execute(HttpRequestEventArgs e)
         {
             throw new NotImplementedException();
         }

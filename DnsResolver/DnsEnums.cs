@@ -124,7 +124,12 @@ namespace Network.Dns
         /// <summary>
         /// the location of the server(s) for a specific protocol and domain
         /// </summary>
-        SRV = 33
+        SRV = 33,
+
+        /// <summary>
+        /// EDNS0 option
+        /// </summary>
+        OPT=41
     }
 
     public enum QType

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Network.Dns
 {
-    public class Answer
+    public class Answer: IResponse
     {
         public DomainName DomainName { get; set; }
         public Type Type { get; set; }
@@ -13,39 +13,39 @@ namespace Network.Dns
         public uint Ttl { get; set; }
         public ResponseData ResponseData { get; set; }
 
-        public byte[] ToBytes()
+        public byte[] GetBytes()
         {
-            List<byte> bytes = new List<byte>();
-            bytes.AddRange(DomainName.ToBytes());
-            bytes.AddRange(Message.ToBytes((ushort)Type));
-            bytes.AddRange(Message.ToBytes((ushort)Class));
-            bytes.AddRange(Message.ToBytes(Ttl));
-            bytes.AddRange(ResponseData.ToBytes());
-            return bytes.ToArray();
-        }
-
-        public static Answer FromBytes(byte[] bytes, ref int index)
-        {
-            Answer a = new Answer();
-            a.DomainName = DomainName.FromBytes(bytes, ref index);
-            ushort s;
-            Message.FromBytes(bytes, index, out s);
-            a.Type = (Type)s;
-            index += 2;
-            Message.FromBytes(bytes, index, out s);
-            a.Class = (Class)s;
-            index += 2;
-            uint ttl;
-            Message.FromBytes(bytes, index, out ttl);
-            a.Ttl = ttl;
-            index += 4;
-            a.ResponseData = ResponseData.FromBytes(a.Type, bytes, ref index);
-            return a;
+            return BinaryHelper.GetBytes(this);
         }
 
         public override string ToString()
         {
             return string.Format("{0}, Type: {1}, Class: {2}, TTL: {3} = {4}", DomainName, Type, Class, Ttl, ResponseData);
+        }
+
+        internal static Answer Get(System.IO.BinaryReader reader)
+        {
+            Answer a = new Answer();
+            a.DomainName = DomainName.Get(reader);
+            ushort s;
+            Message.FromBytes(reader.ReadBytes(2), out s);
+            a.Type = (Type)s;
+            Message.FromBytes(reader.ReadBytes(2), out s);
+            a.Class = (Class)s;
+            uint ttl;
+            Message.FromBytes(reader.ReadBytes(4), out ttl);
+            a.Ttl = ttl;
+            a.ResponseData = ResponseData.Get(a.Type, reader);
+            return a;
+        }
+
+        public void WriteTo(System.IO.BinaryWriter writer)
+        {
+            DomainName.WriteTo(writer);
+            writer.Write(Message.ToBytes((ushort)Type));
+            writer.Write(Message.ToBytes((ushort)Class));
+            writer.Write(Message.ToBytes(Ttl));
+            ResponseData.WriteTo(writer);
         }
     }
 }

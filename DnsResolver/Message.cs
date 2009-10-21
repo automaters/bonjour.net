@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.IO;
 
 namespace Network.Dns
 {
-    public class Message
+    public class Message : IRequest<Message>, IResponse
     {
         public Message()
         {
@@ -50,41 +51,47 @@ namespace Network.Dns
 
         public byte[] ToByteArray()
         {
-            List<byte> bytes = new List<byte>();
-            //ID
-            bytes.AddRange(ToBytes(ID));
-            //Qr, Opcode, Aa, Tc, Rd
-            byte b = 0;
-            b += (byte)QueryResponse;
-            b = (byte)(b << 4);
-            b += (byte)OpCode;
-            b = (byte)(b << 1);
-            b += (AuthoritativeAnswer) ? (byte)1 : (byte)0;
-            b = (byte)(b << 1);
-            b += (Truncated) ? (byte)1 : (byte)0;
-            b = (byte)(b << 1);
-            b += (RecursionDesired) ? (byte)1 : (byte)0;
-            bytes.Add(b);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                WriteTo(new BinaryWriter(stream));
+                return stream.ToArray();
+            }
 
-            //Ra, Z, Rcode
-            b = 0;
-            b += (RecursionAvailable) ? (byte)1 : (byte)0;
-            b = (byte)(b << 7);
-            b += (byte)ResponseCode;
-            bytes.Add(b);
-            bytes.AddRange(ToBytes(QuestionEntries));
-            bytes.AddRange(ToBytes(AnswerEntries));
-            bytes.AddRange(ToBytes(AuthorityEntries));
-            bytes.AddRange(ToBytes(AdditionalEntries));
-            foreach (Question q in Questions)
-                bytes.AddRange(q.ToBytes());
-            foreach (Answer a in Answers)
-                bytes.AddRange(a.ToBytes());
-            foreach (Answer a in Authorities)
-                bytes.AddRange(a.ToBytes());
-            foreach (Answer a in Additionals)
-                bytes.AddRange(a.ToBytes());
-            return bytes.ToArray();
+            //List<byte> bytes = new List<byte>();
+            ////ID
+            //bytes.AddRange(ToBytes(ID));
+            ////Qr, Opcode, Aa, Tc, Rd
+            //byte b = 0;
+            //b += (byte)QueryResponse;
+            //b = (byte)(b << 4);
+            //b += (byte)OpCode;
+            //b = (byte)(b << 1);
+            //b += (AuthoritativeAnswer) ? (byte)1 : (byte)0;
+            //b = (byte)(b << 1);
+            //b += (Truncated) ? (byte)1 : (byte)0;
+            //b = (byte)(b << 1);
+            //b += (RecursionDesired) ? (byte)1 : (byte)0;
+            //bytes.Add(b);
+
+            ////Ra, Z, Rcode
+            //b = 0;
+            //b += (RecursionAvailable) ? (byte)1 : (byte)0;
+            //b = (byte)(b << 7);
+            //b += (byte)ResponseCode;
+            //bytes.Add(b);
+            //bytes.AddRange(ToBytes(QuestionEntries));
+            //bytes.AddRange(ToBytes(AnswerEntries));
+            //bytes.AddRange(ToBytes(AuthorityEntries));
+            //bytes.AddRange(ToBytes(AdditionalEntries));
+            //foreach (Question q in Questions)
+            //    bytes.AddRange(q.ToBytes());
+            //foreach (Answer a in Answers)
+            //    bytes.AddRange(a.ToBytes());
+            //foreach (Answer a in Authorities)
+            //    bytes.AddRange(a.ToBytes());
+            //foreach (Answer a in Additionals)
+            //    bytes.AddRange(a.ToBytes());
+            //return bytes.ToArray();
         }
 
 
@@ -145,47 +152,6 @@ namespace Network.Dns
         public IList<Answer> Authorities { get; set; }
         public IList<Answer> Additionals { get; set; }
 
-        public static Message FromBytes(byte[] bytes)
-        {
-            Message m = new Message();
-            ushort id;
-            int index = 0;
-            FromBytes(bytes, out id);
-            m.ID = id;
-            index++; index++;
-            byte b = bytes[index++];
-            //Qr, Opcode, Aa, Tc, Rd
-            m.RecursionDesired = (b % 2) == 1;
-            b = (byte)(b >> 1);
-            m.Truncated = (b % 2) == 1;
-            b = (byte)(b >> 1);
-            m.AuthoritativeAnswer = (b % 2) == 1;
-            b = (byte)(b >> 1);
-            int opCodeNumber = b % 16;
-            m.OpCode = (OpCode)opCodeNumber;
-            b = (byte)(b >> 4);
-            m.QueryResponse = (Qr)b;
-            //Ra, Z, Rcode
-            b = bytes[index++];
-            m.RecursionAvailable = b > 127;
-            b = (byte)((b << 1) >> 1);
-            m.ResponseCode = (ResponseCode)b;
-            ushort questionEntryCount, answerEntryCount, authorityEntryCount, additionalEntryCount;
-            FromBytes(new byte[] { bytes[index++], bytes[index++] }, out questionEntryCount);
-            FromBytes(new byte[] { bytes[index++], bytes[index++] }, out answerEntryCount);
-            FromBytes(new byte[] { bytes[index++], bytes[index++] }, out authorityEntryCount);
-            FromBytes(new byte[] { bytes[index++], bytes[index++] }, out additionalEntryCount);
-            for (int i = 0; i < questionEntryCount; i++)
-                m.Questions.Add(Question.FromBytes(bytes, ref index));
-            for (int i = 0; i < answerEntryCount; i++)
-                m.Answers.Add(Answer.FromBytes(bytes, ref index));
-            for (int i = 0; i < authorityEntryCount; i++)
-                m.Authorities.Add(Answer.FromBytes(bytes, ref index));
-            for (int i = 0; i < additionalEntryCount; i++)
-                m.Additionals.Add(Answer.FromBytes(bytes, ref index));
-            return m;
-        }
-
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -206,6 +172,125 @@ namespace Network.Dns
                 sb.AppendLine(a.ToString());
 
             return sb.ToString();
+        }
+
+        #region IResponse Members
+
+        public void WriteTo(BinaryWriter writer)
+        {
+            //ID
+            writer.Write(Message.ToBytes(ID));
+            //Qr, Opcode, Aa, Tc, Rd
+            byte b = 0;
+            b += (byte)QueryResponse;
+            b = (byte)(b << 4);
+            b += (byte)OpCode;
+            b = (byte)(b << 1);
+            b += (AuthoritativeAnswer) ? (byte)1 : (byte)0;
+            b = (byte)(b << 1);
+            b += (Truncated) ? (byte)1 : (byte)0;
+            b = (byte)(b << 1);
+            b += (RecursionDesired) ? (byte)1 : (byte)0;
+            writer.Write(b);
+
+            //Ra, Z, Rcode
+            b = 0;
+            b += (RecursionAvailable) ? (byte)1 : (byte)0;
+            b = (byte)(b << 7);
+            b += (byte)ResponseCode;
+            writer.Write(b);
+            writer.Write(Message.ToBytes(QuestionEntries));
+            writer.Write(Message.ToBytes(AnswerEntries));
+            writer.Write(Message.ToBytes(AuthorityEntries));
+            writer.Write(Message.ToBytes(AdditionalEntries));
+            foreach (Question q in Questions)
+                q.WriteTo(writer);
+            foreach (Answer a in Answers)
+                a.WriteTo(writer);
+            foreach (Answer a in Authorities)
+                a.WriteTo(writer);
+            foreach (Answer a in Additionals)
+                a.WriteTo(writer);
+        }
+
+        public byte[] GetBytes()
+        {
+            return this.ToByteArray();
+        }
+
+        #endregion
+
+        #region IRequest<Message> Members
+
+        public Message GetRequest(BinaryReader reader)
+        {
+            if (!(reader is BackReferenceBinaryReader))
+                reader = new BackReferenceBinaryReader(reader.BaseStream, Encoding.BigEndianUnicode);
+            Message m = new Message();
+            ushort id;
+            int index = 0;
+            Message.FromBytes(reader.ReadBytes(2), out id);
+            //FromBytes(bytes, out id);
+            m.ID = id;
+            index++; index++;
+            byte b = reader.ReadByte();
+            //byte b = bytes[index++];
+            //Qr, Opcode, Aa, Tc, Rd
+            m.RecursionDesired = (b % 2) == 1;
+            b = (byte)(b >> 1);
+            m.Truncated = (b % 2) == 1;
+            b = (byte)(b >> 1);
+            m.AuthoritativeAnswer = (b % 2) == 1;
+            b = (byte)(b >> 1);
+            int opCodeNumber = b % 16;
+            m.OpCode = (OpCode)opCodeNumber;
+            b = (byte)(b >> 4);
+            m.QueryResponse = (Qr)b;
+            //Ra, Z, Rcode
+            b = reader.ReadByte();
+            //b = bytes[index++];
+            m.RecursionAvailable = b > 127;
+            b = (byte)((b << 1) >> 1);
+            m.ResponseCode = (ResponseCode)b;
+            ushort questionEntryCount, answerEntryCount, authorityEntryCount, additionalEntryCount;
+            Message.FromBytes(reader.ReadBytes(2), out questionEntryCount);
+            Message.FromBytes(reader.ReadBytes(2), out answerEntryCount);
+            Message.FromBytes(reader.ReadBytes(2), out authorityEntryCount);
+            Message.FromBytes(reader.ReadBytes(2), out additionalEntryCount);
+            //FromBytes(new byte[] { bytes[index++], bytes[index++] }, out questionEntryCount);
+            //FromBytes(new byte[] { bytes[index++], bytes[index++] }, out answerEntryCount);
+            //FromBytes(new byte[] { bytes[index++], bytes[index++] }, out authorityEntryCount);
+            //FromBytes(new byte[] { bytes[index++], bytes[index++] }, out additionalEntryCount);
+            for (int i = 0; i < questionEntryCount; i++)
+                m.Questions.Add(Question.Get(reader));
+            for (int i = 0; i < answerEntryCount; i++)
+                m.Answers.Add(Answer.Get(reader));
+            for (int i = 0; i < authorityEntryCount; i++)
+                m.Authorities.Add(Answer.Get(reader));
+            for (int i = 0; i < additionalEntryCount; i++)
+                m.Additionals.Add(Answer.Get(reader));
+            return m;
+        }
+
+        public Message GetRequest(byte[] requestBytes)
+        {
+            using (MemoryStream ms=new MemoryStream(requestBytes))
+            {
+                ms.Position = 0;
+                return GetRequest(new BinaryReader(ms));
+            }
+        }
+
+        #endregion
+
+        public Message Clone()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                WriteTo(new BinaryWriter(ms));
+                ms.Position = 0;
+                return GetRequest(new BinaryReader(ms));
+            }
         }
     }
 }

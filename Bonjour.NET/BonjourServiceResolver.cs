@@ -14,7 +14,7 @@ namespace Network.Bonjour
 
     public class BonjourServiceResolver : IServiceResolver, IDisposable
     {
-        MDnsClient client;
+        MDnsServer client;
         IList<IService> services;
         private StringCollection protocols;
 
@@ -46,13 +46,12 @@ namespace Network.Bonjour
             protocols.Add(protocol);
             if (client == null)
             {
-                client = MDnsClient.CreateAndResolve(protocol);
+                client = new MDnsServer();
                 client.AnswerReceived += client_AnswerReceived;
+                client.Resolve(protocol);
             }
             else
                 client.Resolve(protocol);
-            if (!client.IsStarted)
-                client.Start();
         }
 
         public IList<IService> Resolve(string protocol, TimeSpan timeout, int minCountServices, int maxCountServices)
@@ -93,6 +92,7 @@ namespace Network.Bonjour
                             rightService.Merge(service);
                             break;
                         case State.Removed:
+                            ((Service)rightService).State = State.Removed;
                             services.Remove(rightService);
                             if (ServiceRemoved != null)
                                 ServiceRemoved(rightService);
@@ -109,6 +109,16 @@ namespace Network.Bonjour
                 else
                     AddService(service);
             }
+
+            foreach (var service in services)
+            {
+                if (service.State == State.Updated)
+                {
+                    if (ServiceFound != null)
+                        ServiceFound(service);
+                    ((Service)service).State = State.UpToDate;
+                }
+            }
         }
 
         private void AddService(IService service)
@@ -116,9 +126,6 @@ namespace Network.Bonjour
             if (!protocols.Contains(service.Protocol))
                 return;
             this.services.Add(service);
-            if (ServiceFound != null)
-                ServiceFound(service);
-            ((Service)service).State = State.UpToDate;
         }
 
         #endregion

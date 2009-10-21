@@ -13,6 +13,10 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StartupObject>Network.Bonjour.Services.Pear.AirDiskService</StartupObject>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -62,6 +66,10 @@
     <ProjectReference Include="..\DnsResolver\Network.Dns.csproj">
       <Project>{36528547-53DC-46CD-8C97-1BAE69262B00}</Project>
       <Name>Network.Dns</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Network\Network.csproj">
+      <Project>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</Project>
+      <Name>Network %28Network\Network%29</Name>
     </ProjectReference>
     <ProjectReference Include="..\SD\Network.ZeroConf.csproj">
       <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>

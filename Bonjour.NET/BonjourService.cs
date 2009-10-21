@@ -42,8 +42,8 @@ namespace Network.Bonjour
             EnhanceService(a);
         }
 
-        MDnsClient resolver;
-        MDnsClient publisher;
+        MDnsServer resolver;
+        MDnsServer publisher;
         AutoResetEvent resolved = new AutoResetEvent(false);
         bool needsToBeResolvedLater = false;
 
@@ -58,9 +58,9 @@ namespace Network.Bonjour
                 return;
             }
             needsToBeResolvedLater = false;
-            resolver = MDnsClient.CreateAndResolve(HostName);
+            resolver = new MDnsServer().Resolve(HostName);
             resolver.AnswerReceived += client_AnswerReceived;
-            resolver.Start();
+            resolver.StartUdp();
             resolved.WaitOne();
         }
 
@@ -176,26 +176,10 @@ namespace Network.Bonjour
 
         public void Publish()
         {
-            publisher = new MDnsClient(new IPEndPoint(IPAddress.Any, 5353));
-            publisher.QueryReceived += new ObjectEvent<Message>(publisher_QueryReceived);
-            publisher.Start();
-            Message m = new Message();
-            m.From = MDnsClient.EndPoint;
-            m.QueryResponse = Qr.Answer;
-            m.OpCode = OpCode.Query;
-            m.AuthoritativeAnswer = true;
-            m.ID = 0;
-            m.ResponseCode = ResponseCode.NoError;
-            foreach (Network.Dns.EndPoint ep in Addresses)
-            {
-                foreach (var address in ep.Addresses)
-                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = HostName, Ttl = 500, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
-                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 500, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
-                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = 500, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
-                m.Authorities.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 500, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
-            }
-
-            publisher.Send(m, m.From);
+            publisher = new MDnsServer(new IPEndPoint(IPAddress.Any, 5353));
+            publisher.QueryReceived += publisher_QueryReceived;
+            publisher.StartUdp();
+            Renew(500);
         }
 
         void publisher_QueryReceived(Message item)
@@ -216,7 +200,7 @@ namespace Network.Bonjour
                             item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
                         }
 
-                        publisher.Send(item, item.From);
+                        //publisher.Send(item, item.From);
                     }
                 }
             }
@@ -297,6 +281,23 @@ namespace Network.Bonjour
         public void Renew(uint ttl)
         {
             expiration = DateTime.Now.AddSeconds(ttl);
+            Message m = new Message();
+            m.From = MDnsServer.EndPoint;
+            m.QueryResponse = Qr.Answer;
+            m.OpCode = OpCode.Query;
+            m.AuthoritativeAnswer = true;
+            m.ID = 0;
+            m.ResponseCode = ResponseCode.NoError;
+            foreach (Network.Dns.EndPoint ep in Addresses)
+            {
+                foreach (var address in ep.Addresses)
+                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = HostName, Ttl = ttl, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
+                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
+                m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
+                m.Authorities.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = ttl, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
+            }
+
+            publisher.Send(m, m.From);
         }
 
         #region IService Members
@@ -315,6 +316,7 @@ namespace Network.Bonjour
                     else
                         AddAddress(endpoint);
                 }
+                State = State.Updated;
             }
         }
 

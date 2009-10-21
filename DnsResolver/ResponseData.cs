@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.IO;
 
 namespace Network.Dns
 {
     public abstract class ResponseData
     {
-        public abstract byte[] ToBytes();
+        public abstract void WriteTo(System.IO.BinaryWriter writer);
 
-        internal static ResponseData FromBytes(Type type, byte[] bytes, ref int index)
+        internal static ResponseData Get(Type type, System.IO.BinaryReader reader)
         {
             switch (type)
             {
                 case Type.A:
                 case Type.AAAA:
-                    return HostAddress.FromBytes(bytes, ref index);
+                    return HostAddress.Get(reader);
                     break;
                 case Type.NS:
                     break;
@@ -25,7 +26,7 @@ namespace Network.Dns
                 case Type.MF:
                     break;
                 case Type.CNAME:
-                    return CName.FromBytes(bytes, ref index);
+                    return CName.Get(reader);
                     break;
                 case Type.SOA:
                     break;
@@ -40,7 +41,7 @@ namespace Network.Dns
                 case Type.WKS:
                     break;
                 case Type.PTR:
-                    return Ptr.FromBytes(bytes, ref index);
+                    return Ptr.Get(reader);
                     break;
                 case Type.HINFO:
                     break;
@@ -49,15 +50,16 @@ namespace Network.Dns
                 case Type.MX:
                     break;
                 case Type.TXT:
-                    return Txt.FromBytes(bytes, ref index);
+                    return Txt.Get(reader);
                     break;
                 case Type.SRV:
-                    return Srv.FromBytes(bytes, ref index);
+                    return Srv.Get(reader);
                     break;
                 default:
                     break;
             }
-            throw new NotImplementedException(string.Format("Cannot read {0} response", type));
+            //throw new NotImplementedException(string.Format("Cannot read {0} response", type));
+            return null;
         }
     }
 
@@ -65,22 +67,18 @@ namespace Network.Dns
     {
         public string CNAME { get; set; }
 
-        public override byte[] ToBytes()
+        public override void WriteTo(System.IO.BinaryWriter writer)
         {
-            List<byte> bytes = new List<byte>();
-            bytes.AddRange(Message.ToBytes((ushort)Encoding.UTF8.GetByteCount(CNAME)));
-            bytes.AddRange(Encoding.UTF8.GetBytes(CNAME));
-            return bytes.ToArray();
+            writer.Write(Message.ToBytes((ushort)Encoding.UTF8.GetByteCount(CNAME)));
+            writer.Write(Encoding.UTF8.GetBytes(CNAME));
         }
 
-        internal static CName FromBytes(byte[] bytes, ref int index)
+        internal static CName Get(BinaryReader reader)
         {
             ushort byteCount;
-            Message.FromBytes(bytes, index, out byteCount);
-            index += 2;
+            Message.FromBytes(reader.ReadBytes(2), out byteCount);
             CName cName = new CName();
-            cName.CNAME = Encoding.UTF8.GetString(bytes, index + 2, byteCount);
-            index += byteCount;
+            cName.CNAME = Encoding.UTF8.GetString(reader.ReadBytes(byteCount), 0, byteCount);
             return cName;
         }
     }
@@ -89,24 +87,20 @@ namespace Network.Dns
     {
         public IPAddress Address { get; set; }
 
-        internal static HostAddress FromBytes(byte[] bytes, ref int index)
+        internal static HostAddress Get(BinaryReader reader)
         {
             ushort byteCount;
-            Message.FromBytes(bytes, index, out byteCount);
-            index += 2;
+            Message.FromBytes(reader.ReadBytes(2), out byteCount);
             HostAddress ha = new HostAddress();
-            ha.Address = new IPAddress(bytes.Skip(index).Take(byteCount).ToArray());
-            index += byteCount;
+            ha.Address = new IPAddress(reader.ReadBytes(byteCount));
             return ha;
         }
 
-        public override byte[] ToBytes()
+        public override void WriteTo(System.IO.BinaryWriter writer)
         {
-            List<byte> bytes = new List<byte>();
             byte[] address = Address.GetAddressBytes();
-            bytes.AddRange(Message.ToBytes((ushort)address.Length));
-            bytes.AddRange(address);
-            return bytes.ToArray();
+            writer.Write(Message.ToBytes((ushort)address.Length));
+            writer.Write(address);
         }
 
         public override string ToString()
@@ -118,21 +112,20 @@ namespace Network.Dns
     {
         public DomainName DomainName { get; set; }
 
-        public override byte[] ToBytes()
+        public override void WriteTo(System.IO.BinaryWriter writer)
         {
-            List<byte> bytes = new List<byte>();
-            bytes.AddRange(DomainName.ToBytes());
-            bytes.InsertRange(0, Message.ToBytes((ushort)bytes.Count));
-            return bytes.ToArray();
+            writer.Write(Message.ToBytes(DomainName.GetByteCount()));
+            DomainName.WriteTo(writer);
         }
 
-        internal static Ptr FromBytes(byte[] bytes, ref int index)
+        internal static Ptr Get(BinaryReader reader)
         {
             Ptr p = new Ptr();
             ushort byteCount;
-            Message.FromBytes(bytes, index, out byteCount);
-            index += 2;
-            p.DomainName = DomainName.FromBytes(bytes, ref index);
+            //useless datalength
+            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+
+            p.DomainName = DomainName.Get(reader);
             //index += byteCount;
             return p;
         }
@@ -140,15 +133,12 @@ namespace Network.Dns
 
     public class Srv : ResponseData
     {
-        public override byte[] ToBytes()
+        public override void WriteTo(System.IO.BinaryWriter writer)
         {
-            List<byte> bytes = new List<byte>();
-            bytes.AddRange(Message.ToBytes(Priority));
-            bytes.AddRange(Message.ToBytes(Weight));
-            bytes.AddRange(Message.ToBytes(Port));
-            bytes.AddRange(Target.ToBytes());
-            bytes.InsertRange(0, Message.ToBytes((ushort)bytes.Count));
-            return bytes.ToArray();
+            writer.Write(Message.ToBytes(Priority));
+            writer.Write(Message.ToBytes(Weight));
+            writer.Write(Message.ToBytes(Port));
+            Target.WriteTo(writer);
         }
 
         public ushort Priority { get; set; }
@@ -156,23 +146,19 @@ namespace Network.Dns
         public ushort Port { get; set; }
         public DomainName Target { get; set; }
 
-        internal static Srv FromBytes(byte[] bytes, ref int index)
+        internal static Srv Get(BinaryReader reader)
         {
             Srv srv = new Srv();
             ushort s;
             //Useless Datalength
-            Message.FromBytes(bytes, index, out s);
-            index += 2;
-            Message.FromBytes(bytes, index, out s);
-            index += 2;
+            reader.ReadBytes(2);
+            Message.FromBytes(reader.ReadBytes(2), out s);
             srv.Priority = s;
-            Message.FromBytes(bytes, index, out s);
-            index += 2;
+            Message.FromBytes(reader.ReadBytes(2), out s);
             srv.Weight = s;
-            Message.FromBytes(bytes, index, out s);
-            index += 2;
+            Message.FromBytes(reader.ReadBytes(2), out s);
             srv.Port = s;
-            srv.Target = DomainName.FromBytes(bytes, ref index);
+            srv.Target = DomainName.Get(reader);
             return srv;
         }
     }
@@ -184,20 +170,25 @@ namespace Network.Dns
             Properties = new Dictionary<string, string>();
         }
 
-        public override byte[] ToBytes()
+        public override void WriteTo(System.IO.BinaryWriter writer)
         {
             ushort length = 0;
-            List<byte> bytes = new List<byte>();
+            List<KeyValuePair<byte[], byte>> bytes = new List<KeyValuePair<byte[], byte>>();
             foreach (KeyValuePair<string, string> kvp in Properties)
             {
                 byte[] kvpBytes = Encoding.UTF8.GetBytes(kvp.Key + "=" + kvp.Value);
-                bytes.Add((byte)kvpBytes.Length);
-                bytes.AddRange(kvpBytes);
+                bytes.Add(new KeyValuePair<byte[], byte>(kvpBytes, (byte)kvpBytes.Length));
+                //writer.Write((byte)kvpBytes.Length);
+                //writer.Write(kvpBytes);
                 length += (ushort)kvpBytes.Length;
                 length++;
             }
-            bytes.InsertRange(0, Message.ToBytes(length));
-            return bytes.ToArray();
+            writer.Write(Message.ToBytes(length));
+            foreach (var properties in bytes)
+            {
+                writer.Write(properties.Value);
+                writer.Write(properties.Key);
+            }
         }
 
         public const string True = "true";
@@ -226,18 +217,17 @@ namespace Network.Dns
 
         public IDictionary<string, string> Properties { get; set; }
 
-        internal static Txt FromBytes(byte[] bytes, ref int index)
+        internal static Txt Get(BinaryReader reader)
         {
             Txt txt = new Txt();
-            ushort byteCount;
+            ushort byteCount, byteRead = 0;
             //Useless Datalength
-            Message.FromBytes(bytes, index, out byteCount);
-            index += 2;
-            int stop = index + byteCount;
-            while (index < stop)
+            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            while (byteRead < byteCount)
             {
-                txt.AddProperty(Encoding.UTF8.GetString(bytes, index + 1, bytes[index]));
-                index += bytes[index] + 1;
+                byte propertyLength = reader.ReadByte();
+                byteRead += (ushort)(propertyLength + 1);
+                txt.AddProperty(Encoding.UTF8.GetString(reader.ReadBytes(propertyLength), 0, propertyLength));
             }
             return txt;
         }

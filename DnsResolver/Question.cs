@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections.Specialized;
+using System.IO;
 
 namespace Network.Dns
 {
-    public class Question
+    public class Question : IResponse
     {
         private Question()
         {
@@ -39,6 +40,8 @@ namespace Network.Dns
         public QType Type { get; set; }
         public QClass Class { get; set; }
 
+        public bool CacheFlush { get; set; }
+
         public byte[] ToBytes()
         {
             List<byte> bytes = new List<byte>();
@@ -70,6 +73,35 @@ namespace Network.Dns
             sb.AppendFormat(" QType : {0},", Type);
             sb.AppendFormat(" QClass : {0}", Class);
             return sb.ToString();
+        }
+
+        #region IResponse Members
+
+        public void WriteTo(BinaryWriter writer)
+        {
+            DomainName.WriteTo(writer);
+            writer.Write(Message.ToBytes((ushort)Type));
+            writer.Write(Message.ToBytes((ushort)Class));
+        }
+
+        public byte[] GetBytes()
+        {
+            return BinaryHelper.GetBytes(this);
+        }
+
+        #endregion
+
+        public static Question Get(BinaryReader reader)
+        {
+            Question q = new Question();
+            q.DomainName = DomainName.Get(reader);
+            ushort s;
+            Message.FromBytes(reader.ReadBytes(2), out s);
+            q.Type = (QType)s;
+            Message.FromBytes(reader.ReadBytes(2), out s);
+            q.Class = (QClass)((ushort)(s << 1) >> 1);
+            q.CacheFlush = ((ushort)q.Class) != s;
+            return q;
         }
     }
 }

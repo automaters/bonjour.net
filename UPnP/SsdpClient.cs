@@ -83,7 +83,7 @@ namespace Network.UPnP
 
         protected void TreatQuery(byte[] bytes)
         {
-            HttpRequest request = HttpRequest.FromBytes(bytes);
+            HttpRequest request = new HttpRequest().GetRequest(bytes);
             if (QueryReceived != null)
                 QueryReceived(request);
         }
