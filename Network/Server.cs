@@ -126,7 +126,14 @@ namespace Network
 
         protected void Send(TResponse response, TcpClient tcpClient)
         {
-            response.WriteTo(new BinaryWriter(tcpClient.GetStream()));
+            if (tcpClient.Connected)
+            {
+                using (BinaryWriter writer = new BinaryWriter(tcpClient.GetStream(), Encoding.UTF8))
+                {
+                    response.WriteTo(writer);
+                    writer.Flush();
+                }
+            }
         }
 
         protected void Send(TResponse response, IPEndPoint remote)
