@@ -125,7 +125,7 @@ namespace Network.Bonjour
             if (a.Ttl == 0)
                 State = State.Removed;
             else
-                Renew(a.Ttl);
+                expiration = expiration.AddSeconds(a.Ttl);
         }
 
         public static Service Build(Message m)
@@ -200,7 +200,7 @@ namespace Network.Bonjour
                             item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
                         }
 
-                        //publisher.Send(item, item.From);
+                        publisher.Send(item, item.From);
                     }
                 }
             }

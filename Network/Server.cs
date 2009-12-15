@@ -57,7 +57,9 @@ namespace Network
                 udp = new UdpClient(Host);
             else
             {
-                udp = new UdpClient(Host.Port);
+                udp = new UdpClient();
+                udp.Client.ExclusiveAddressUse = false;
+                udp.Client.Bind(new IPEndPoint(IPAddress.Any, Host.Port));
                 udp.JoinMulticastGroup(Host.Address, 5);
                 udp.BeginReceive(ReceiveUdpRequest, null);
                 OnStart();
@@ -75,13 +77,20 @@ namespace Network
 
         private void ReceiveTcpRequest(IAsyncResult result)
         {
-
-            TcpClient tcpClient = tcp.EndAcceptTcpClient(result);
-            if (IsStarted)
-                tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
-            RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TRequest().GetRequest(new BinaryReader(tcpClient.GetStream())));
-            rea.Host = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-            TreatTcp(rea, tcpClient);
+            try
+            {
+                TcpClient tcpClient = tcp.EndAcceptTcpClient(result);
+                if (IsStarted)
+                    tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
+                RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TRequest().GetRequest(new BinaryReader(tcpClient.GetStream())));
+                rea.Host = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                TreatTcp(rea, tcpClient);
+            }
+            finally
+            {
+                if (IsStarted)
+                    tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
+            }
         }
 
         protected virtual void TreatTcp(RequestEventArgs<TRequest, TResponse> rea, TcpClient tcpClient)

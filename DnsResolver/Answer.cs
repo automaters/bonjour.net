@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Network.Dns
 {
-    public class Answer: IResponse
+    public class Answer : IResponse
     {
         public DomainName DomainName { get; set; }
         public Type Type { get; set; }
@@ -45,7 +45,8 @@ namespace Network.Dns
             writer.Write(Message.ToBytes((ushort)Type));
             writer.Write(Message.ToBytes((ushort)Class));
             writer.Write(Message.ToBytes(Ttl));
-            ResponseData.WriteTo(writer);
+            if (ResponseData != null)
+                ResponseData.WriteTo(writer);
         }
     }
 }
