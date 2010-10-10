@@ -15,7 +15,7 @@ namespace mDNSReader
         {
             BonjourServiceResolver bsr = new BonjourServiceResolver();
             bsr.ServiceFound += new Network.ZeroConf.ObjectEvent<Network.ZeroConf.IService>(bsr_ServiceFound);
-            bsr.Resolve("_touch-able._tcp.");
+            bsr.Resolve("_airport._tcp.");
             Console.ReadLine();
             //Service s = new Service();
             //s.AddAddress(new Network.Dns.EndPoint() { DomainName = "ASPERGE.local.", Port = 50508, Addresses = new List<IPAddress>() { IPAddress.Parse("192.168.1.19") } });

@@ -134,11 +134,15 @@ namespace Network.Bonjour
 
         public void Dispose()
         {
+            if (client != null)
+                client.Stop();
+
             foreach (IService service in services)
                 service.Stop();
-            client.Stop();
+
         }
 
         #endregion
     }
 }
+

@@ -18,7 +18,7 @@ namespace Network.Dns
                 case Type.A:
                 case Type.AAAA:
                     return HostAddress.Get(reader);
-                    break;
+
                 case Type.NS:
                     break;
                 case Type.MD:
@@ -27,7 +27,7 @@ namespace Network.Dns
                     break;
                 case Type.CNAME:
                     return CName.Get(reader);
-                    break;
+
                 case Type.SOA:
                     break;
                 case Type.MB:
@@ -42,7 +42,7 @@ namespace Network.Dns
                     break;
                 case Type.PTR:
                     return Ptr.Get(reader);
-                    break;
+
                 case Type.HINFO:
                     break;
                 case Type.MINFO:
@@ -51,15 +51,43 @@ namespace Network.Dns
                     break;
                 case Type.TXT:
                     return Txt.Get(reader);
-                    break;
+
                 case Type.SRV:
                     return Srv.Get(reader);
-                    break;
+
                 default:
                     break;
             }
             //throw new NotImplementedException(string.Format("Cannot read {0} response", type));
-            return null;
+            return UnknownResponseData.Get(reader);
+        }
+    }
+
+    public class UnknownResponseData : ResponseData
+    {
+        public byte[] Bytes { get; protected set; }
+        public ushort Length { get { return (ushort)Bytes.Length; } }
+
+        public override void WriteTo(BinaryWriter writer)
+        {
+            ushort length = Length;
+            writer.Write(Length);
+
+            if (length > 0)
+                writer.Write(Bytes);
+        }
+
+        internal static ResponseData Get(BinaryReader reader)
+        {
+            ushort byteCount;
+            Message.FromBytes(reader.ReadBytes(2), out byteCount);
+            UnknownResponseData data = new UnknownResponseData();
+            if (byteCount > 0)
+                data.Bytes = reader.ReadBytes(byteCount);
+            else
+                data.Bytes = new byte[0];
+
+            return data;
         }
     }
 
@@ -135,6 +163,7 @@ namespace Network.Dns
     {
         public override void WriteTo(System.IO.BinaryWriter writer)
         {
+            writer.Write(new byte[] { 0, 8 });
             writer.Write(Message.ToBytes(Priority));
             writer.Write(Message.ToBytes(Weight));
             writer.Write(Message.ToBytes(Port));

@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Network", "Network", "{94021DC9-3285-44A8-B830-64489127EE2D}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.ZeroConf", "SD\Network.ZeroConf.csproj", "{2B2D41E0-DBC7-4075-873C-394D02448281}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Bonjour", "Bonjour.NET\Network.Bonjour.csproj", "{CA2E95A3-CF9D-4524-85FC-12CAD9D81479}"
@@ -23,8 +25,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rest.MEF", "Network
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Bonjour.Services", "Network.Bonjour.Services\Network.Bonjour.Services.csproj", "{8CC2B14D-E24B-41A8-AB93-17F130905E29}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Network", "Network", "{94021DC9-3285-44A8-B830-64489127EE2D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network", "Network\Network.csproj", "{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rest", "Network.Rest\Network.Rest.csproj", "{13A68F9C-F095-409E-A97D-A05FFCDCE210}"
@@ -35,53 +35,53 @@ Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 15
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs09.codeplex.com/
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs09
 		SccLocalPath0 = .
-		SccProjectUniqueName1 = SD\\Network.ZeroConf.csproj
-		SccProjectName1 = SD
-		SccLocalPath1 = SD
-		SccProjectUniqueName2 = Bonjour.NET\\Network.Bonjour.csproj
-		SccProjectName2 = Bonjour.NET
-		SccLocalPath2 = Bonjour.NET
-		SccProjectUniqueName3 = mDNSReader\\mDNSReader.csproj
-		SccProjectName3 = mDNSReader
-		SccLocalPath3 = mDNSReader
-		SccProjectUniqueName4 = DnsResolver\\Network.Dns.csproj
-		SccProjectName4 = DnsResolver
-		SccLocalPath4 = DnsResolver
-		SccProjectUniqueName5 = UPnP\\Network.UPnP.Services.csproj
-		SccProjectName5 = UPnP
-		SccLocalPath5 = UPnP
-		SccProjectUniqueName6 = UPnPReader\\UPnPReader.csproj
-		SccProjectName6 = UPnPReader
-		SccLocalPath6 = UPnPReader
-		SccProjectUniqueName7 = DLNA\\Network.UPnP.DLNA.csproj
-		SccProjectName7 = DLNA
-		SccLocalPath7 = DLNA
-		SccProjectUniqueName8 = MEF.Bonjour\\MEF.Bonjour.csproj
-		SccProjectName8 = MEF.Bonjour
-		SccLocalPath8 = MEF.Bonjour
-		SccProjectUniqueName9 = MEF.Bonjour.Tests\\MEF.Bonjour.Tests.csproj
-		SccProjectName9 = MEF.Bonjour.Tests
-		SccLocalPath9 = MEF.Bonjour.Tests
-		SccProjectUniqueName10 = Network.Rest.MEF\\Network.Rest.MEF.csproj
-		SccProjectName10 = Network.Rest.MEF
-		SccLocalPath10 = Network.Rest.MEF
-		SccProjectUniqueName11 = Network.Bonjour.Services\\Network.Bonjour.Services.csproj
-		SccProjectName11 = Network.Bonjour.Services
-		SccLocalPath11 = Network.Bonjour.Services
-		SccProjectUniqueName12 = Network\\Network.csproj
-		SccProjectTopLevelParentUniqueName12 = Bonjour.NET.sln
-		SccProjectName12 = Network
-		SccLocalPath12 = Network
-		SccProjectUniqueName13 = Network.Rest\\Network.Rest.csproj
-		SccProjectTopLevelParentUniqueName13 = Bonjour.NET.sln
-		SccProjectName13 = Network.Rest
-		SccLocalPath13 = Network.Rest
-		SccProjectUniqueName14 = Network.Tests\\Network.Tests.csproj
-		SccProjectTopLevelParentUniqueName14 = Bonjour.NET.sln
-		SccProjectName14 = Network.Tests
-		SccLocalPath14 = Network.Tests
+		SccProjectUniqueName1 = Network.Tests\\Network.Tests.csproj
+		SccProjectTopLevelParentUniqueName1 = Bonjour.NET.sln
+		SccProjectName1 = Network.Tests
+		SccLocalPath1 = Network.Tests
+		SccProjectUniqueName2 = Network.Rest\\Network.Rest.csproj
+		SccProjectTopLevelParentUniqueName2 = Bonjour.NET.sln
+		SccProjectName2 = Network.Rest
+		SccLocalPath2 = Network.Rest
+		SccProjectUniqueName3 = Network\\Network.csproj
+		SccProjectTopLevelParentUniqueName3 = Bonjour.NET.sln
+		SccProjectName3 = Network
+		SccLocalPath3 = Network
+		SccProjectUniqueName4 = Network.Bonjour.Services\\Network.Bonjour.Services.csproj
+		SccProjectName4 = Network.Bonjour.Services
+		SccLocalPath4 = Network.Bonjour.Services
+		SccProjectUniqueName5 = Network.Rest.MEF\\Network.Rest.MEF.csproj
+		SccProjectName5 = Network.Rest.MEF
+		SccLocalPath5 = Network.Rest.MEF
+		SccProjectUniqueName6 = MEF.Bonjour.Tests\\MEF.Bonjour.Tests.csproj
+		SccProjectName6 = MEF.Bonjour.Tests
+		SccLocalPath6 = MEF.Bonjour.Tests
+		SccProjectUniqueName7 = MEF.Bonjour\\MEF.Bonjour.csproj
+		SccProjectName7 = MEF.Bonjour
+		SccLocalPath7 = MEF.Bonjour
+		SccProjectUniqueName8 = DLNA\\Network.UPnP.DLNA.csproj
+		SccProjectName8 = DLNA
+		SccLocalPath8 = DLNA
+		SccProjectUniqueName9 = UPnPReader\\UPnPReader.csproj
+		SccProjectName9 = UPnPReader
+		SccLocalPath9 = UPnPReader
+		SccProjectUniqueName10 = UPnP\\Network.UPnP.Services.csproj
+		SccProjectName10 = UPnP
+		SccLocalPath10 = UPnP
+		SccProjectUniqueName11 = DnsResolver\\Network.Dns.csproj
+		SccProjectName11 = DnsResolver
+		SccLocalPath11 = DnsResolver
+		SccProjectUniqueName12 = mDNSReader\\mDNSReader.csproj
+		SccProjectName12 = mDNSReader
+		SccLocalPath12 = mDNSReader
+		SccProjectUniqueName13 = Bonjour.NET\\Network.Bonjour.csproj
+		SccProjectName13 = Bonjour.NET
+		SccLocalPath13 = Bonjour.NET
+		SccProjectUniqueName14 = SD\\Network.ZeroConf.csproj
+		SccProjectName14 = SD
+		SccLocalPath14 = SD
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

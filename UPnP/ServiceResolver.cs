@@ -75,6 +75,7 @@ namespace Network.UPnP
 
         void client_AnswerReceived(HttpResponse item)
         {
+
             Service s = Service.BuildService(item);
             if (s != null && ServiceFound != null)
                 ServiceFound(s);

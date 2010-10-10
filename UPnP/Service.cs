@@ -81,7 +81,7 @@ namespace Network.UPnP
 
         public void Resolve()
         {
-            WebRequest request = WebRequest.Create(this["Location"]);
+            WebRequest request = WebRequest.Create(Location);
 
             XmlDocument doc = new XmlDocument();
 
@@ -97,9 +97,25 @@ namespace Network.UPnP
             Name = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='friendlyName']").InnerText;
             foreach (var node in doc.SelectNodes("/*[local-name()='root']/*[local-name()='device']/*[local-name()='serviceList']/*[local-name()='service']/*").OfType<XmlNode>())
             {
-                properties.Add(node.LocalName, node.InnerText);
+                properties[node.LocalName] = node.InnerText;
             }
+
+            Control = new Uri(Location, doc.SelectSingleNode("/root/device/serviceList/service[serviceType/text()='" + Protocol + "']/controlURL").Value);
+            SCPD = new Uri(Location, doc.SelectSingleNode("/root/device/serviceList/service[serviceType/text()='" + Protocol + "']/SCPDURL").Value);
+            Event = new Uri(Location, doc.SelectSingleNode("/root/device/serviceList/service[serviceType/text()='" + Protocol + "']/eventSubURL").Value);
+
+            GetDescription();
+
             this.State = State.UpToDate;
+        }
+
+        private void GetDescription()
+        {
+            WebRequest request = WebRequest.Create(SCPD);
+
+            XmlDocument doc = new XmlDocument();
+
+            doc.Load(request.GetResponse().GetResponseStream());
         }
 
         #endregion
@@ -121,17 +137,29 @@ namespace Network.UPnP
             if (item.Headers.ContainsKey("NT"))
                 s.Protocol = item.Headers["NT"];
             s.properties = item.Headers;
+            s.Location = new Uri(item.Headers["Location"]);
+            s.properties.Remove("Location");
             s.properties.Remove("ST");
             s.Addresses.Add(new Network.Dns.EndPoint() { });
             s.Addresses[0].Addresses.Add(IPAddress.Parse(new Uri(s["Location"]).Host));
             if (item.Headers.ContainsKey("Cache-Control"))
             {
                 string cacheControl = item.Headers["Cache-Control"];
-                string ttl = cacheControl.Substring(cacheControl.IndexOf("max-age=") + 8, 4);
+                int startOfMaxAge = cacheControl.IndexOf("max-age=");
+                int endOfMaxAge = cacheControl.IndexOf(";", startOfMaxAge);
+                if (endOfMaxAge == -1)
+                    endOfMaxAge = cacheControl.Length;
+                string ttl = cacheControl.Substring(startOfMaxAge + 8, endOfMaxAge - (startOfMaxAge + 8));
                 s.expiration = DateTime.Now.AddSeconds(int.Parse(ttl));
             }
             return s;
         }
+
+        public Uri Location { get; set; }
+
+        public Uri Control { get; set; }
+        public Uri SCPD { get; set; }
+        public Uri Event { get; set; }
 
         internal static Service BuildService(HttpRequest item)
         {
