@@ -1,30 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
 using System.Net.Sockets;
 using System.IO;
-using System.Net;
-using System.Collections;
 
 namespace Network
 {
-    public abstract class Server<TRequest, TResponse> : IServiceProvider
-        where TResponse : IResponse<TResponse>
+    public abstract class Client<TRequest,TResponse>
+        where TResponse : IResponse<TResponse>,new()
         where TRequest : IRequest<TRequest>, new()
     {
-        public Server(ushort port)
+                public Client(ushort port)
             : this(IPAddress.Any, port)
         {
 
         }
 
-        public Server(IPAddress address, ushort port)
+        public Client(IPAddress address, ushort port)
             : this(new IPEndPoint(address, port))
         {
 
         }
 
-        public Server(IPEndPoint host)
+        public Client(IPEndPoint host)
         {
             Host = host;
         }
@@ -73,7 +72,8 @@ namespace Network
         public event EventHandler Stopped;
         public event EventHandler<RequestEventArgs<TRequest, TResponse>> RequestReceived;
 
-        protected abstract RequestEventArgs<TRequest, TResponse> GetEventArgs(TRequest request);
+        //protected abstract RequestEventArgs<TRequest, TResponse> GetEventArgs(TRequest request);
+        protected abstract RequestEventArgs<TRequest, TResponse> GetEventArgs(TResponse response);
 
         private void ReceiveTcpRequest(IAsyncResult result)
         {
@@ -82,7 +82,7 @@ namespace Network
                 TcpClient tcpClient = tcp.EndAcceptTcpClient(result);
                 if (IsStarted)
                     tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
-                RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TRequest().GetRequest(new BinaryReader(tcpClient.GetStream())));
+                RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TResponse().GetResponse(new BinaryReader(tcpClient.GetStream())));
                 rea.Host = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
                 TreatTcp(rea, tcpClient);
             }
@@ -130,7 +130,7 @@ namespace Network
             }
             if (requestBytes == null)
                 return;
-            RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TRequest().GetRequest(requestBytes));
+            RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TResponse().GetResponse(requestBytes));
             rea.Host = remote;
             TreatUdp(rea, remote);
         }
@@ -156,7 +156,7 @@ namespace Network
         protected void SendRequest(TRequest request, IPEndPoint remote)
         {
             byte[] requestBytes = request.GetBytes();
-            udp.Send(requestBytes, requestBytes.Length, remote);
+            udp.Send(requestBytes, requestBytes.Length, remote);        
         }
 
         public void Stop()
@@ -208,21 +208,5 @@ namespace Network
                 return true;
             return false;
         }
-
-        protected IDictionary<Type, object> services = new Dictionary<Type, object>();
-
-        #region IServiceProvider Members
-
-        public object GetService(Type serviceType)
-        {
-            return services[serviceType];
-        }
-
-        public T GetService<T>()
-        {
-            return (T)GetService(typeof(T));
-        }
-
-        #endregion
     }
 }

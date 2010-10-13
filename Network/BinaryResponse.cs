@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Network
 {
-    public class BinaryResponse : IResponse
+    public class BinaryResponse : IResponse<BinaryResponse>
     {
         private MemoryStream stream;
 
@@ -13,6 +13,8 @@ namespace Network
         {
             stream = new MemoryStream();
         }
+
+
 
         #region IResponse Members
 
@@ -25,6 +27,28 @@ namespace Network
         public byte[] GetBytes()
         {
             return stream.ToArray();
+        }
+
+        #endregion
+
+        #region IResponse<BinaryResponse> Members
+
+        public BinaryResponse GetResponse(BinaryReader stream)
+        {
+            byte[] buffer;
+            do
+            {
+                buffer = stream.ReadBytes(1024);
+                this.stream.Write(buffer, 0, buffer.Length);
+            }
+            while (buffer.Length == 1024);
+            return this;
+        }
+
+        public BinaryResponse GetResponse(byte[] requestBytes)
+        {
+            stream.Write(requestBytes, 0, requestBytes.Length);
+            return this;
         }
 
         #endregion
@@ -44,7 +68,7 @@ namespace Network
         public static string ReadLine(BinaryReader reader)
         {
             bool stopReading = false;
-            List<char> chars= new List<char>();
+            List<char> chars = new List<char>();
             char[] readChar = reader.ReadChars(2);
 
             if (new string(readChar) == Environment.NewLine)

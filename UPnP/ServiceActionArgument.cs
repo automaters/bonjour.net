@@ -39,10 +39,44 @@ namespace Network.UPnP
         public const string uri = "uri";
         public const string uuid = "uuid";
 
+
+        public static bool IsArgumentType(string argumentType)
+        {
+            return ArgumentType.bin_base64 == argumentType
+                || ArgumentType.bin_hex == argumentType
+                || ArgumentType.boolean == argumentType
+                || ArgumentType.@char == argumentType
+                || ArgumentType.date == argumentType
+                || ArgumentType.dateTime == argumentType
+                || ArgumentType.dateTime_tz == argumentType
+                || ArgumentType.fixed14_4 == argumentType
+                || ArgumentType.@float == argumentType
+                || ArgumentType.i1 == argumentType
+                || ArgumentType.i2 == argumentType
+                || ArgumentType.i4 == argumentType
+                || ArgumentType.@int == argumentType
+                || ArgumentType.number == argumentType
+                || ArgumentType.r4 == argumentType
+                || ArgumentType.r8 == argumentType
+                || ArgumentType.@string == argumentType
+                || ArgumentType.time == argumentType
+                || ArgumentType.time_tz == argumentType
+                || ArgumentType.ui1 == argumentType
+                || ArgumentType.ui2 == argumentType
+                || ArgumentType.ui4 == argumentType
+                || ArgumentType.uri == argumentType
+                || ArgumentType.uuid == argumentType;
+        }
     }
 
     public abstract class ServiceActionArgument
     {
+        public ServiceActionArgument(string name, string type, string direction)
+            : this(name, type, direction == "out" ? ArgumentDirection.Out : ArgumentDirection.In)
+        {
+
+        }
+
         public ServiceActionArgument(string name, string type, ArgumentDirection direction)
         {
             Name = name;
@@ -80,6 +114,12 @@ namespace Network.UPnP
     {
         public ServiceActionArgument(string name, string type, ArgumentDirection direction)
             : base(name, type, direction)
+        {
+
+        }
+
+        public ServiceActionArgument(string name, string type, string direction)
+            : this(name, type, direction == "out" ? ArgumentDirection.Out : ArgumentDirection.In)
         {
 
         }
@@ -358,7 +398,7 @@ namespace Network.UPnP
                 //case ArgumentType.time:
                 //case ArgumentType.time_tz:
                 //    Value = new TimeSpan(value);
-                    //break;
+                //break;
                 case ArgumentType.ui1:
                     Value = Convert.ToByte(value);
                     break;

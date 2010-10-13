@@ -59,12 +59,12 @@ namespace Network.Rest
             }
             sb.AppendLine();
             if (Host != null)
-                sb.AppendLine(string.Format("Host: {0}", Host));
+                sb.AppendLine(string.Format("HOST: {0}", Host));
             if (Body.Length > 0)
                 Headers["Content-Length"] = Body.Length.ToString();
             foreach (KeyValuePair<string, string> header in Headers)
             {
-                if (header.Key != "Host")
+                if (header.Key != "HOST")
                     sb.AppendLine(string.Format("{0}: {1}", header.Key, header.Value));
             }
             sb.AppendLine();
@@ -95,15 +95,24 @@ namespace Network.Rest
                 client.GetStream().Write(requestBytes, 0, requestBytes.Length);
                 if (!expectResponse)
                     return null;
-                MemoryStream stream = new MemoryStream();
+                //MemoryStream stream = new MemoryStream();
                 NetworkStream clientStream = client.GetStream();
-                do
+                //do
+                //{
+                //    byte[] buffer = new byte[1024];
+                //    int lengthRead = clientStream.Read(buffer, 0, 1024);
+                //    stream.Write(buffer, 0, lengthRead);
+                //} while (clientStream.DataAvailable);
+                HttpResponse response;
+                using (BinaryReader reader = new BinaryReader(clientStream))
                 {
-                    byte[] buffer = new byte[1024];
-                    int lengthRead = clientStream.Read(buffer, 0, 1024);
-                    stream.Write(buffer, 0, lengthRead);
-                } while (clientStream.DataAvailable);
-                return HttpResponse.FromBytes(stream.ToArray());
+                    response = new HttpResponse().GetResponse(reader);
+                    if (clientStream.CanRead && response.Headers.ContainsKey("Connection") && response.Headers["Connection"] == "Keep-Alive")
+                    {
+                        response = response.GetResponse(reader);
+                    }
+                }
+                return response;
             }
             if (Protocol == TransportProtocol.UDP)
             {
@@ -124,12 +133,15 @@ namespace Network.Rest
             HttpRequest request = new HttpRequest();
             //METHOD URI VERSION
             string line = reader.ReadLine();
+            if (line == null)
+                return null;
             string[] firstLine = line.Split(SPACE);
             request.Method = firstLine[0];
             request.Uri = firstLine[1];
             request.HttpVersion = HttpVersion.HTTP11;
             request.ReadHeaders(reader);
-            request.Host = request.Host.Trim();
+            if (request.Host != null)
+                request.Host = request.Host.Trim();
             return request;
         }
 
@@ -153,6 +165,15 @@ namespace Network.Rest
         {
             StringReader reader = new StringReader(requestString);
             return Parse(reader);
+        }
+
+        #endregion
+
+        #region IRequest Members
+
+        public void WriteTo(BinaryWriter stream)
+        {
+            stream.Write(this.GetBytes());
         }
 
         #endregion

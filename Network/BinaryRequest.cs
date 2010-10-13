@@ -48,5 +48,14 @@ namespace Network
         }
 
         #endregion
+
+        #region IRequest Members
+
+        public void WriteTo(BinaryWriter stream)
+        {
+            WriteTo(stream.BaseStream);
+        }
+
+        #endregion
     }
 }

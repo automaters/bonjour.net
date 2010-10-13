@@ -29,8 +29,6 @@ namespace Network.UPnP
                 client = SsdpClient.CreateAndResolve(protocol);
                 client.QueryReceived += client_QueryReceived;
                 client.AnswerReceived += client_AnswerReceived;
-
-                client.Start();
             }
             else
                 client.Resolve(protocol);
@@ -92,6 +90,11 @@ namespace Network.UPnP
 
         public void Dispose()
         {
+            client.Stop();
+
+            if (services != null)
+                foreach (Service s in services)
+                    s.Stop();
         }
 
         #endregion

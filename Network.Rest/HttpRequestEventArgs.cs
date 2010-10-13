@@ -7,8 +7,18 @@ namespace Network.Rest
     public class HttpRequestEventArgs : RequestEventArgs<HttpRequest, HttpResponse>
     {
         public HttpRequestEventArgs()
+            : this(new HttpResponse())
         {
-            Response = new HttpResponse();
+        }
+
+        public HttpRequestEventArgs(HttpResponse response)
+        {
+            Response = response;
+        }
+
+        public HttpRequestEventArgs(HttpRequest request)
+        {
+            Request = request;
         }
     }
 }

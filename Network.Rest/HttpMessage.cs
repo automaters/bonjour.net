@@ -39,13 +39,13 @@ namespace Network.Rest
         {
             get
             {
-                if (Headers.ContainsKey("Content-Length"))
-                    return int.Parse(Headers["Content-Length"]);
+                if (Headers.ContainsKey("CONTENT-LENGTH"))
+                    return int.Parse(Headers["CONTENT-LENGTH"]);
                 return 0;
             }
             set
             {
-                Headers["Content-Length"] = value.ToString();
+                Headers["CONTENT-LENGTH"] = value.ToString();
             }
         }
 
@@ -53,16 +53,16 @@ namespace Network.Rest
         {
             get
             {
-                if (Headers.ContainsKey("Host"))
-                    return Headers["Host"];
+                if (Headers.ContainsKey("HOST"))
+                    return Headers["HOST"];
                 return null;
             }
             set
             {
-                if (Headers.ContainsKey("Host"))
-                    Headers["Host"] = value;
+                if (Headers.ContainsKey("HOST"))
+                    Headers["HOST"] = value;
                 else
-                    Headers.Add("Host", value);
+                    Headers.Add("HOST", value);
             }
         }
 
@@ -75,7 +75,16 @@ namespace Network.Rest
 
         protected const char SPACE = ' ';
 
-
+        protected void ReadHeaders(BinaryReader reader)
+        {
+            string line;
+            while (!string.IsNullOrEmpty(line = BinaryHelper.ReadLine(reader)))
+            {
+                string[] header = line.Split(':');
+                if (!Headers.ContainsKey(header[0].ToUpper()))
+                    Headers.Add(header[0].ToUpper(), line.Substring(header[0].Length + 1).Trim());
+            }
+        }
 
         protected void ReadHeaders(TextReader reader)
         {
@@ -83,7 +92,8 @@ namespace Network.Rest
             while (!string.IsNullOrEmpty(line = reader.ReadLine()))
             {
                 string[] header = line.Split(':');
-                Headers.Add(header[0], line.Substring(header[0].Length + 1));
+                if (!Headers.ContainsKey(header[0].ToUpper()))
+                    Headers.Add(header[0].ToUpper(), line.Substring(header[0].Length + 1).Trim());
             }
         }
     }

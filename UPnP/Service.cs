@@ -14,6 +14,7 @@ namespace Network.UPnP
         public Service()
         {
             Addresses = new List<Network.Dns.EndPoint>();
+            actions = new Dictionary<string, ServiceAction>();
         }
 
         #region IService Members
@@ -93,29 +94,54 @@ namespace Network.UPnP
 
         private void EnhanceService(XmlDocument doc)
         {
-            Protocol = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='deviceType']").InnerText;
+            //Protocol = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='deviceType']").InnerText;
             Name = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='friendlyName']").InnerText;
-            foreach (var node in doc.SelectNodes("/*[local-name()='root']/*[local-name()='device']/*[local-name()='serviceList']/*[local-name()='service']/*").OfType<XmlNode>())
+            foreach (var node in doc.SelectNodes("/*[local-name()='root']/*[local-name()='device']/*[local-name()='serviceList']/*[local-name()='service' and ./*[local-name()='serviceType']/text()='" + Protocol + "']/*").OfType<XmlNode>())
             {
                 properties[node.LocalName] = node.InnerText;
             }
 
-            Control = new Uri(Location, doc.SelectSingleNode("/root/device/serviceList/service[serviceType/text()='" + Protocol + "']/controlURL").Value);
-            SCPD = new Uri(Location, doc.SelectSingleNode("/root/device/serviceList/service[serviceType/text()='" + Protocol + "']/SCPDURL").Value);
-            Event = new Uri(Location, doc.SelectSingleNode("/root/device/serviceList/service[serviceType/text()='" + Protocol + "']/eventSubURL").Value);
+            if (SCPD == null)
+            {
+                XmlNode tempNode = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='serviceList']/*[local-name()='service' and ./*[local-name()='serviceType']/text()='" + Protocol + "']/*[local-name()='controlURL']/text()");
+                if (tempNode != null)
+                    Control = new Uri(Location, tempNode.Value);
+                tempNode = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='serviceList']/*[local-name()='service' and ./*[local-name()='serviceType']/text()='" + Protocol + "']/*[local-name()='SCPDURL']/text()");
+                if (tempNode != null)
+                    SCPD = new Uri(Location, tempNode.Value);
+                tempNode = doc.SelectSingleNode("/*[local-name()='root']/*[local-name()='device']/*[local-name()='serviceList']/*[local-name()='service' and ./*[local-name()='serviceType']/text()='" + Protocol + "']/*[local-name()='eventSubURL']/text()");
+                if (tempNode != null)
+                    Event = new Uri(Location, tempNode.Value);
 
-            GetDescription();
-
+                GetDescription();
+            }
             this.State = State.UpToDate;
         }
 
         private void GetDescription()
         {
+            if (SCPD == null)
+                return;
+
             WebRequest request = WebRequest.Create(SCPD);
 
             XmlDocument doc = new XmlDocument();
 
             doc.Load(request.GetResponse().GetResponseStream());
+
+            foreach (XmlNode node in doc.SelectNodes("/*[local-name()='scpd']/*[local-name()='actionList']/*[local-name()='action']"))
+            {
+                ServiceAction action = new ServiceAction(node.SelectSingleNode("*[local-name()='name']/text()").Value, Protocol);
+                foreach (XmlNode argumentNode in node.SelectNodes("*[local-name()='argumentList']/*[local-name()='argument']"))
+                {
+                    string argumentName = argumentNode.SelectSingleNode("*[local-name()='name']/text()").Value;
+                    string argumentType = argumentNode.SelectSingleNode("*[local-name()='relatedStateVariable']/text()").Value;
+                    if (!ArgumentType.IsArgumentType(argumentType))
+                        argumentType = doc.SelectSingleNode("/*[local-name()='scpd']/*[local-name()='serviceStateTable']/*[local-name()='stateVariable' and ./*[local-name()='name']/text()='" + argumentType + "']/*[local-name()='dataType']/text()").Value;
+                    action.Add(new ServiceActionArgument<string>(argumentName, argumentType, argumentNode.SelectSingleNode("*[local-name()='direction']/text()").Value));
+                }
+                actions.Add(action.Name, action);
+            }
         }
 
         #endregion
@@ -137,15 +163,15 @@ namespace Network.UPnP
             if (item.Headers.ContainsKey("NT"))
                 s.Protocol = item.Headers["NT"];
             s.properties = item.Headers;
-            s.Location = new Uri(item.Headers["Location"]);
-            s.properties.Remove("Location");
+            s.Location = new Uri(item.Headers["LOCATION"]);
+            s.properties.Remove("LOCATION");
             s.properties.Remove("ST");
             s.Addresses.Add(new Network.Dns.EndPoint() { });
-            s.Addresses[0].Addresses.Add(IPAddress.Parse(new Uri(s["Location"]).Host));
-            if (item.Headers.ContainsKey("Cache-Control"))
+            s.Addresses[0].Addresses.Add(IPAddress.Parse(s.Location.Host));
+            if (item.Headers.ContainsKey("CACHE-CONTROL"))
             {
-                string cacheControl = item.Headers["Cache-Control"];
-                int startOfMaxAge = cacheControl.IndexOf("max-age=");
+                string cacheControl = item.Headers["CACHE-CONTROL"];
+                int startOfMaxAge = cacheControl.IndexOf("max-age=", StringComparison.InvariantCultureIgnoreCase);
                 int endOfMaxAge = cacheControl.IndexOf(";", startOfMaxAge);
                 if (endOfMaxAge == -1)
                     endOfMaxAge = cacheControl.Length;
@@ -169,7 +195,7 @@ namespace Network.UPnP
             s.properties = item.Headers;
             s.properties.Remove("NT");
             s.Addresses.Add(new Network.Dns.EndPoint() { });
-            s.Addresses[0].Addresses.Add(IPAddress.Parse(new Uri(s["Location"]).Host));
+            s.Addresses[0].Addresses.Add(IPAddress.Parse(new Uri(s["LOCATION"]).Host));
             if (item.Headers.ContainsKey("NTS"))
             {
                 switch (item.Headers["NTS"])
@@ -182,9 +208,9 @@ namespace Network.UPnP
                         break;
                 }
             }
-            if (item.Headers.ContainsKey("Cache-Control"))
+            if (item.Headers.ContainsKey("CACHE-CONTROL"))
             {
-                string cacheControl = item.Headers["Cache-Control"];
+                string cacheControl = item.Headers["CACHE-CONTROL"];
                 string ttl = cacheControl.Substring(cacheControl.IndexOf("max-age=") + 8, 4);
                 s.expiration = DateTime.Now.AddSeconds(int.Parse(ttl));
             }
@@ -198,12 +224,16 @@ namespace Network.UPnP
             sb.AppendLine("Properties :");
             foreach (KeyValuePair<string, string> kvp in properties)
                 sb.AppendLine(string.Format("\t{0}={1}", kvp.Key, kvp.Value));
+            sb.AppendLine("Actions :");
+            foreach (ServiceAction action in actions.Values)
+                sb.AppendLine(action.ToString());
             return sb.ToString();
         }
 
         #region IExpirable Members
 
         DateTime expiration;
+        private Dictionary<string, ServiceAction> actions;
 
         public uint Ttl
         {

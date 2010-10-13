@@ -5,11 +5,15 @@ using System.IO;
 
 namespace Network
 {
-    public interface IRequest<RequestType>
+    public interface IRequest
+    {
+        void WriteTo(BinaryWriter stream);
+        byte[] GetBytes();
+    }
+
+    public interface IRequest<RequestType> : IRequest
     {
         RequestType GetRequest(BinaryReader stream);
         RequestType GetRequest(byte[] requestBytes);
-        //void WriteTo(Stream stream);
-        byte[] GetBytes();
     }
 }

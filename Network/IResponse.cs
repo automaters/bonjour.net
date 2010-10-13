@@ -10,4 +10,10 @@ namespace Network
         void WriteTo(BinaryWriter writer);
         byte[] GetBytes();
     }
+
+    public interface IResponse<TResponse> : IResponse
+    {
+        TResponse GetResponse(BinaryReader stream);
+        TResponse GetResponse(byte[] requestBytes);
+    }
 }

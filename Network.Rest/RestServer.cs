@@ -49,6 +49,10 @@ namespace Network.Rest
             try
             {
                 base.TreatTcp(rea, tcpClient);
+                if (rea.Response.Headers.ContainsKey("Connection") && rea.Response.Headers["Connection"] == "Keep-Alive")
+                {
+                    TreatTcp(GetEventArgs(rea.Request), tcpClient);
+                }
             }
             catch (NotImplementedException e)
             {

@@ -7,7 +7,7 @@ namespace Network.Rest
 {
     public abstract class CommandFactory<EventArgs, RequestType, ResponseType>
         where EventArgs : RequestEventArgs<RequestType, ResponseType>
-        where ResponseType : IResponse
+        where ResponseType : IResponse<ResponseType>, new()
         where RequestType : IRequest<RequestType>, new()
     {
         protected IDictionary<string, IDictionary<Regex, Type>> registeredCommands = new Dictionary<string, IDictionary<Regex, Type>>();

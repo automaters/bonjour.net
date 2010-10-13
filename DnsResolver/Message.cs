@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Network.Dns
 {
-    public class Message : IRequest<Message>, IResponse
+    public class Message : IRequest<Message>, IResponse<Message>
     {
         public Message()
         {
@@ -292,5 +292,19 @@ namespace Network.Dns
                 return GetRequest(new BinaryReader(ms));
             }
         }
+
+        #region IResponse<Message> Members
+
+        public Message GetResponse(BinaryReader stream)
+        {
+            return GetRequest(stream);
+        }
+
+        public Message GetResponse(byte[] requestBytes)
+        {
+            return GetRequest(requestBytes);
+        }
+
+        #endregion
     }
 }

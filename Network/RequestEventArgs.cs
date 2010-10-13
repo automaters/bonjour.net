@@ -10,7 +10,7 @@ namespace Network
     }
 
     public class RequestEventArgs<RequestType, ResponseType> : EventArgs
-        where ResponseType : IResponse
+        where ResponseType : IResponse<ResponseType>
     {
         public RequestEventArgs()
         {

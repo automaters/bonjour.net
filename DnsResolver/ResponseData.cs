@@ -71,7 +71,7 @@ namespace Network.Dns
         public override void WriteTo(BinaryWriter writer)
         {
             ushort length = Length;
-            writer.Write(Length);
+            writer.Write(Message.ToBytes(Length));
 
             if (length > 0)
                 writer.Write(Bytes);

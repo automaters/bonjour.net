@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="BinaryRequest.cs" />
     <Compile Include="BinaryResponse.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandDescriptor.cs" />
     <Compile Include="CommandFactory.cs" />

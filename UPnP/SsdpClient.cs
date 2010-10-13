@@ -13,28 +13,40 @@ using Network.UPnP;
 
 namespace Network.UPnP
 {
-    class SsdpClient
+    class SsdpClient : Client<HttpRequest, HttpResponse>
     {
         public static readonly IPEndPoint EndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900);
 
         private UdpClient client;
         private IPEndPoint local;
 
-        public SsdpClient(IPEndPoint endpoint)
+        public SsdpClient(int port)
+            : base(new IPEndPoint(EndPoint.Address, port))
         {
-            local = endpoint;
-            client = new UdpClient();
-            client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
-            client.Client.Bind(endpoint);
-            //lockTimes++;
-            //active.WaitOne();
-            receiver = new Thread(StartReceiving);
+            IsUdp = true;
+            //local = endpoint;
+            //client = new UdpClient();
+            //client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
+            //client.Client.Bind(endpoint);
+            ////lockTimes++;
+            ////active.WaitOne();
+            //receiver = new Thread(StartReceiving);
         }
 
-        public bool IsStarted { get; set; }
+        //public bool IsStarted { get; set; }
 
         public event ObjectEvent<HttpRequest> QueryReceived;
         public event ObjectEvent<HttpResponse> AnswerReceived;
+
+        protected override void OnRequestReceived(RequestEventArgs<HttpRequest, HttpResponse> rea)
+        {
+            base.OnRequestReceived(rea);
+            if (rea.Request != null)
+                TreatQuery(rea.Request);
+            else
+                TreatAnswer(rea.Response);
+
+        }
 
         public void Resolve(string protocol)
         {
@@ -44,86 +56,95 @@ namespace Network.UPnP
             request.Headers.Add("ST", protocol);
             request.Headers.Add("MAN", "\"ssdp:discover\"");
             request.Headers.Add("MX", "3");
-            byte[] byteRequest = request.GetBytes();
-            client.Send(byteRequest, byteRequest.Length, EndPoint);
+            if (!IsStarted)
+                StartUdp();
+            SendRequest(request, EndPoint);
         }
 
         public static SsdpClient CreateAndResolve(string protocol)
         {
-            SsdpClient client = new SsdpClient(new IPEndPoint(IPAddress.Any, 65432));
-            client.client.MulticastLoopback = true;
+            SsdpClient client = new SsdpClient(0);
             //client.client.MulticastLoopback = true;
-            client.client.JoinMulticastGroup(EndPoint.Address, 255);
+            //client.client.MulticastLoopback = true;
+            //client.client.JoinMulticastGroup(EndPoint.Address, 255);
             client.Resolve(protocol);
             return client;
         }
 
-        private AutoResetEvent active = new AutoResetEvent(false);
+        //private AutoResetEvent active = new AutoResetEvent(false);
 
-        private void StartReceiving()
-        {
-            while (IsStarted)
-            {
-                client.BeginReceive(StartReceiving, null);
-                active.WaitOne();
-            }
-        }
+        //private void StartReceiving()
+        //{
+        //    while (IsStarted)
+        //    {
+        //        client.BeginReceive(StartReceiving, null);
+        //        active.WaitOne();
+        //    }
+        //}
 
-        private void StartReceiving(IAsyncResult result)
-        {
-            result.AsyncWaitHandle.WaitOne();
-            IPEndPoint src = new IPEndPoint(IPAddress.Any, 0);
-            byte[] response = client.EndReceive(result, ref src);
-            active.Set();
-            if (src == EndPoint)
-                TreatQuery(response);
-            else
-                TreatAnswer(response);
-        }
+        //private void StartReceiving(IAsyncResult result)
+        //{
+        //    result.AsyncWaitHandle.WaitOne();
+        //    IPEndPoint src = new IPEndPoint(IPAddress.Any, 0);
+        //    byte[] response = client.EndReceive(result, ref src);
+        //    active.Set();
+        //    if (src == EndPoint)
+        //        TreatQuery(response);
+        //    else
+        //        TreatAnswer(response);
+        //}
 
-        protected void TreatQuery(byte[] bytes)
+        protected void TreatQuery(HttpRequest request)
         {
-            HttpRequest request = new HttpRequest().GetRequest(bytes);
             if (QueryReceived != null)
                 QueryReceived(request);
         }
 
-        protected void TreatAnswer(byte[] bytes)
+        protected void TreatAnswer(HttpResponse response)
         {
-            HttpResponse response = HttpResponse.FromBytes(bytes);
             if (AnswerReceived != null)
                 AnswerReceived(response);
         }
 
-        public void Stop()
-        {
-            //active.WaitOne();
-            //lockTimes++;
-            IsStarted = false;
-            active.Set();
-            //try
-            //{
-            //    client.Close();
-            //    receiver.Abort();
-            //}
-            //catch (ThreadAbortException)
-            //{
-            //}
-        }
-        Thread receiver;
+        //public void Stop()
+        //{
+        //    //active.WaitOne();
+        //    //lockTimes++;
+        //    IsStarted = false;
+        //    active.Set();
+        //    //try
+        //    //{
+        //    //    client.Close();
+        //    //    receiver.Abort();
+        //    //}
+        //    //catch (ThreadAbortException)
+        //    //{
+        //    //}
+        //}
+        //Thread receiver;
 
-        public void Start()
+        //public void Start()
+        //{
+        //    //while (lockTimes > 0)
+        //    //{
+        //    //    lockTimes--;
+        //    //    active.ReleaseMutex();
+        //    //}
+        //    if (!IsStarted)
+        //    {
+        //        IsStarted = true;
+        //        receiver.Start();
+        //    }
+        //}
+
+        //protected override RequestEventArgs<HttpRequest, HttpResponse> GetEventArgs(HttpRequest request)
+        //{
+        //    return new HttpRequestEventArgs(request);
+        //}
+
+        protected override RequestEventArgs<HttpRequest, HttpResponse> GetEventArgs(HttpResponse response)
         {
-            //while (lockTimes > 0)
-            //{
-            //    lockTimes--;
-            //    active.ReleaseMutex();
-            //}
-            if (!IsStarted)
-            {
-                IsStarted = true;
-                receiver.Start();
-            }
+            return new HttpRequestEventArgs(response);
         }
     }
 }

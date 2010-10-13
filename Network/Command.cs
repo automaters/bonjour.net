@@ -6,7 +6,7 @@ namespace Network
 {
     public abstract class Command<RequestEventArgsType, RequestType, ResponseType>
         where RequestEventArgsType : RequestEventArgs<RequestType, ResponseType>
-        where ResponseType : IResponse
+        where ResponseType : IResponse<ResponseType>
     {
         public Command()
         {
@@ -29,7 +29,7 @@ namespace Network
 
     public abstract class Command<RequestType, ResponseType> :
         Command<RequestEventArgs<RequestType, ResponseType>, RequestType, ResponseType>
-        where ResponseType : IResponse
+        where ResponseType : IResponse<ResponseType>
     {
     }
 }
