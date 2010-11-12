@@ -7,9 +7,14 @@ using System.Net.Sockets;
 
 namespace Network.Rest
 {
-    public class HttpRequest : HttpMessage, IRequest<HttpRequest>
+    public class HttpRequest : HttpMessage, IServerRequest<HttpRequest>, IClientRequest
     {
-        public HttpRequest() { }
+        public HttpRequest()
+        {
+            Protocol = HttpProtocol.HTTP11;
+            AcceptEncoding = new string[] { "gzip" };
+            Method = "GET";
+        }
 
         public HttpRequest(string uriString) : base(uriString) { }
         public HttpRequest(Uri uri) : base(uri) { }
@@ -32,15 +37,32 @@ namespace Network.Rest
 
         public bool KeepAlive
         {
-            get { return Headers["KeepAlive"] == "true"; }
+            get { return TryGetHeader("KeepAlive") == "true"; }
             set { Headers["KeepAlive"] = value.ToString(); }
+        }
+
+        public string[] AcceptEncoding
+        {
+            get
+            {
+                string value = TryGetHeader("ACCEPT-ENCODING");
+                if (!string.IsNullOrEmpty(value))
+                    return value.Split(';');
+                return null;
+            }
+            set
+            {
+                Headers["ACCEPT-ENCODING"] = string.Join(";", value);
+            }
         }
 
         public string ContentType
         {
-            get { return (string)Headers["Content-Type"]; }
+            get { return TryGetHeader("Content-Type"); }
             set { Headers["Content-Type"] = value; }
         }
+
+
 
         public override string ToString()
         {
@@ -49,14 +71,7 @@ namespace Network.Rest
             sb.Append(SPACE);
             sb.Append(Uri);
             sb.Append(SPACE);
-            switch (HttpVersion)
-            {
-                case HttpVersion.HTTP11:
-                    sb.Append("HTTP/1.1");
-                    break;
-                default:
-                    break;
-            }
+            sb.Append(Protocol);
             sb.AppendLine();
             if (Host != null)
                 sb.AppendLine(string.Format("HOST: {0}", Host));
@@ -80,12 +95,12 @@ namespace Network.Rest
             return sb.ToString();
         }
 
-        public TransportProtocol Protocol { get; set; }
+        public TransportProtocol TransportProtocol { get; set; }
 
         public HttpResponse GetResponse(bool expectResponse)
         {
             Uri uri = new Uri("http://" + Host + Uri);
-            if (Protocol == TransportProtocol.TCP)
+            if (TransportProtocol == TransportProtocol.TCP)
             {
                 TcpClient client = new TcpClient();
                 client.Connect(uri.Host, uri.Port != 0 ? uri.Port : 80);
@@ -114,7 +129,7 @@ namespace Network.Rest
                 }
                 return response;
             }
-            if (Protocol == TransportProtocol.UDP)
+            if (TransportProtocol == TransportProtocol.UDP)
             {
                 UdpClient client = new UdpClient();
                 client.Connect(uri.Host, uri.Port != 0 ? uri.Port : 80);
@@ -138,7 +153,7 @@ namespace Network.Rest
             string[] firstLine = line.Split(SPACE);
             request.Method = firstLine[0];
             request.Uri = firstLine[1];
-            request.HttpVersion = HttpVersion.HTTP11;
+            request.Protocol = firstLine[2];
             request.ReadHeaders(reader);
             if (request.Host != null)
                 request.Host = request.Host.Trim();

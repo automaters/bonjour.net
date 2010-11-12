@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Network.Dns
 {
-    public class Question : IResponse
+    public class Question : IServerResponse
     {
         private Question()
         {

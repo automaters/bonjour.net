@@ -6,9 +6,9 @@ using System.Net;
 
 namespace Network.Rest
 {
-   
 
-    public abstract class Command : Command<HttpRequestEventArgs, HttpRequest, HttpResponse>
+
+    public abstract class Command : Command<HttpServerEventArgs, HttpRequest, HttpResponse>
     {
         public Command(string connectionString)
         {

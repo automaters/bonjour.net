@@ -40,7 +40,7 @@ namespace Network.Bonjour
         void MDnsServer_Started(object sender, EventArgs e)
         {
             if (this.IsUdp)
-                udp.MulticastLoopback = true;
+                server.MulticastLoopback = true;
         }
 
         public event ObjectEvent<Message> AnswerReceived;
@@ -73,16 +73,12 @@ namespace Network.Bonjour
             {
                 this.requestId = 0;
                 Message response = rea.Request.Clone();
+                response.From = rea.Host;
                 if (QueryReceived != null)
                     QueryReceived(response);
                 if (response.AnswerEntries > 0)
                     rea.Response = response;
             }
-        }
-
-        internal new void Send(Message response, IPEndPoint remote)
-        {
-            base.Send(response, remote);
         }
     }
 }

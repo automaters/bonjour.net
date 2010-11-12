@@ -30,7 +30,7 @@ namespace Network.Rest.MEF
         public RestServer(ushort port)
             : base(port)
         {
-            this.HttpRequestReceived += new EventHandler<HttpRequestEventArgs>(RestServer_RequestReceived);
+            this.HttpRequestReceived += new EventHandler<HttpServerEventArgs>(RestServer_RequestReceived);
             batch = new CompositionBatch();
             batch.AddPart(this);
         }
@@ -42,7 +42,7 @@ namespace Network.Rest.MEF
             base.OnStart();
         }
 
-        void RestServer_RequestReceived(object sender, HttpRequestEventArgs e)
+        void RestServer_RequestReceived(object sender, HttpServerEventArgs e)
         {
             Command c = commands.Where(command => command.Metadata["Method"].ToString() == e.Request.Method && command.Metadata.ContainsKey("UriConstraint") ? Regex.IsMatch(e.Request.Uri, command.Metadata["UriConstraint"].ToString()) : true).Single().GetExportedObject();
             c.Execute(e);

@@ -44,6 +44,7 @@ namespace Network.ZeroConf
         {
             get
             {
+
                 return (from expiration in expirables
                         from expirable in expiration.Value
                         select expirable).Count();

@@ -7,11 +7,15 @@ namespace Network
 {
     public interface IRequest
     {
+    }
+
+    public interface IClientRequest : IRequest
+    {
         void WriteTo(BinaryWriter stream);
         byte[] GetBytes();
     }
 
-    public interface IRequest<RequestType> : IRequest
+    public interface IServerRequest<RequestType> : IRequest
     {
         RequestType GetRequest(BinaryReader stream);
         RequestType GetRequest(byte[] requestBytes);

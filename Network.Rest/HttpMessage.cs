@@ -39,8 +39,9 @@ namespace Network.Rest
         {
             get
             {
-                if (Headers.ContainsKey("CONTENT-LENGTH"))
-                    return int.Parse(Headers["CONTENT-LENGTH"]);
+                string length = TryGetHeader("CONTENT-LENGTH");
+                if(!string.IsNullOrEmpty(length))
+                    return int.Parse(length);
                 return 0;
             }
             set
@@ -53,9 +54,7 @@ namespace Network.Rest
         {
             get
             {
-                if (Headers.ContainsKey("HOST"))
-                    return Headers["HOST"];
-                return null;
+                return TryGetHeader("HOST");
             }
             set
             {
@@ -66,7 +65,7 @@ namespace Network.Rest
             }
         }
 
-        public HttpVersion HttpVersion { get; set; }
+        public string Protocol { get; set; }
 
         public virtual byte[] GetBytes()
         {
@@ -86,6 +85,14 @@ namespace Network.Rest
             }
         }
 
+        protected string TryGetHeader(string key)
+        {
+            string value;
+            if (Headers.TryGetValue(key, out value))
+                return value;
+            return null;
+        }
+
         protected void ReadHeaders(TextReader reader)
         {
             string line;
@@ -98,9 +105,9 @@ namespace Network.Rest
         }
     }
 
-    public enum HttpVersion
+    public static class HttpProtocol
     {
-        HTTP11
+        public const string HTTP11 = "HTTP/1.1";
     }
 
 }

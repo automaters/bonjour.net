@@ -17,13 +17,13 @@ namespace Network.UPnP
     {
         public static readonly IPEndPoint EndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900);
 
-        private UdpClient client;
         private IPEndPoint local;
 
-        public SsdpClient(int port)
-            : base(new IPEndPoint(EndPoint.Address, port))
+        public SsdpClient(ushort port)
+            : base(false)
         {
-            IsUdp = true;
+            StartUdp(EndPoint.Address, port);
+
             //local = endpoint;
             //client = new UdpClient();
             //client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
@@ -33,32 +33,19 @@ namespace Network.UPnP
             //receiver = new Thread(StartReceiving);
         }
 
-        //public bool IsStarted { get; set; }
-
         public event ObjectEvent<HttpRequest> QueryReceived;
         public event ObjectEvent<HttpResponse> AnswerReceived;
 
-        protected override void OnRequestReceived(RequestEventArgs<HttpRequest, HttpResponse> rea)
-        {
-            base.OnRequestReceived(rea);
-            if (rea.Request != null)
-                TreatQuery(rea.Request);
-            else
-                TreatAnswer(rea.Response);
-
-        }
-
         public void Resolve(string protocol)
         {
+            IsUdp = true;
             HttpRequest request = new HttpRequest();
             request.Method = "M-SEARCH";
             request.Host = EndPoint.ToString();
             request.Headers.Add("ST", protocol);
             request.Headers.Add("MAN", "\"ssdp:discover\"");
             request.Headers.Add("MX", "3");
-            if (!IsStarted)
-                StartUdp();
-            SendRequest(request, EndPoint);
+            SendOneWay(request, EndPoint);
         }
 
         public static SsdpClient CreateAndResolve(string protocol)
@@ -142,9 +129,9 @@ namespace Network.UPnP
         //    return new HttpRequestEventArgs(request);
         //}
 
-        protected override RequestEventArgs<HttpRequest, HttpResponse> GetEventArgs(HttpResponse response)
+        protected override ClientEventArgs<HttpRequest, HttpResponse> GetEventArgs(HttpResponse response)
         {
-            return new HttpRequestEventArgs(response);
+            return new HttpClientEventArgs(response);
         }
     }
 }

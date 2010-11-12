@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Network
 {
-    public class BinaryResponse : IResponse<BinaryResponse>
+    public class BinaryResponse : IClientResponse<BinaryResponse>, IServerResponse
     {
         private MemoryStream stream;
 
@@ -56,7 +56,7 @@ namespace Network
 
     public static class BinaryHelper
     {
-        public static byte[] GetBytes(IResponse response)
+        public static byte[] GetBytes(IServerResponse response)
         {
             using (MemoryStream stream = new MemoryStream())
             {
@@ -70,6 +70,8 @@ namespace Network
             bool stopReading = false;
             List<char> chars = new List<char>();
             char[] readChar = reader.ReadChars(2);
+            if (readChar.Length == 0)
+                return null;
 
             if (new string(readChar) == Environment.NewLine)
                 stopReading = true;

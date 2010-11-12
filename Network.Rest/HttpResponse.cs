@@ -4,19 +4,22 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Xml;
+using System.IO.Compression;
 
 namespace Network.Rest
 {
-    public class HttpResponse : HttpMessage, IResponse<HttpResponse>
+    public class HttpResponse<T> : HttpMessage, IClientResponse<T>, IServerResponse
+        where T : HttpResponse<T>,new()
     {
         public HttpResponse()
         {
             ResponseCode = HttpStatusCode.OK;
+            Protocol = HttpProtocol.HTTP11;
         }
 
 
 
-        public static HttpResponse FromBytes(byte[] bytes)
+        public static T FromBytes(byte[] bytes)
         {
             return Parse(Encoding.UTF8.GetString(bytes));
         }
@@ -41,14 +44,14 @@ namespace Network.Rest
         }
 
 
-        private static HttpResponse Parse(string responseString)
+        private static T Parse(string responseString)
         {
-            HttpResponse response = new HttpResponse();
+            T response = new T();
             StringReader reader = new StringReader(responseString);
             string line = reader.ReadLine();
             string[] firstLine = line.Split(' ');
             //VERSION RESPONSECODE RESPONSEMESSAGE
-            response.HttpVersion = HttpVersion.HTTP11;
+            response.Protocol = firstLine[0];
             response.ResponseCode = (HttpStatusCode)int.Parse(firstLine[1]);
             response.ResponseMessage = string.Join(" ", firstLine, 2, firstLine.Length - 2);
             response.ReadHeaders(reader);
@@ -75,7 +78,7 @@ namespace Network.Rest
 
         public void WriteTo(BinaryWriter writer)
         {
-            writer.Write(Encoding.GetBytes(string.Format("HTTP/1.1 {0} {1}{2}", (int)ResponseCode, ResponseMessage, Environment.NewLine)));
+            writer.Write(Encoding.GetBytes(string.Format("{3} {0} {1}{2}", (int)ResponseCode, ResponseMessage, Environment.NewLine, Protocol)));
             foreach (KeyValuePair<string, string> header in Headers)
             {
                 if (header.Key != "Host")
@@ -88,52 +91,69 @@ namespace Network.Rest
             writer.Write(Encoding.GetBytes(Environment.NewLine));
         }
 
-        public HttpResponse GetResponse(BinaryReader reader)
+        public T GetResponse(BinaryReader reader)
         {
             string line = BinaryHelper.ReadLine(reader);
+            if (line == null)
+                return null;
             string[] firstLine = line.Split(' ');
             //VERSION RESPONSECODE RESPONSEMESSAGE
-            HttpVersion = HttpVersion.HTTP11;
+            Protocol = firstLine[0];
             ResponseCode = (HttpStatusCode)int.Parse(firstLine[1]);
             ResponseMessage = string.Join(" ", firstLine, 2, firstLine.Length - 2);
             ReadHeaders(reader);
-            BinaryWriter bw = new BinaryWriter(this.Body);
-            bw.Write(reader.ReadBytes(this.ContentLength));
-            Body.Seek(0, SeekOrigin.Begin);
-            return this;
+            if (this.ContentLength > 0)
+            {
+                BinaryWriter bw = new BinaryWriter(this.Body);
+                bw.Write(reader.ReadBytes(this.ContentLength));
+                Body.Seek(0, SeekOrigin.Begin);
+                string encoding;
+                if (Headers.TryGetValue("CONTENT-ENCODING", out encoding))
+                {
+                    if (encoding.ToLower() == "gzip")
+                    {
+                        var unzip = new GZipStream(Body, CompressionMode.Decompress);
+                        byte[] buffer = new byte[1024];
+                        int length = 0;
+                        MemoryStream unzippedStream = new MemoryStream();
+                        while ((length = unzip.Read(buffer, 0, buffer.Length)) > 0)
+                            unzippedStream.Write(buffer, 0, length);
+                        Body.Close();
+                        Body.Dispose();
+                        Body = unzippedStream;
+                        Body.Seek(0, SeekOrigin.Begin);
+                    }
+                }
+                LoadContent();
+            }
+            return this as T;
             //StreamReader reader = new StreamReader(binaryReader.BaseStream);
             //return ReadFrom(reader);
         }
 
+        protected virtual void LoadContent()
+        {
+        }
+
         #endregion
-
-        //private HttpResponse ReadFrom(StreamReader reader)
-        //{
-
-        //    string line = reader.ReadLine();
-        //    string[] firstLine = line.Split(' ');
-        //    //VERSION RESPONSECODE RESPONSEMESSAGE
-        //    HttpVersion = HttpVersion.HTTP11;
-        //    ResponseCode = (HttpStatusCode)int.Parse(firstLine[1]);
-        //    ResponseMessage = string.Join(" ", firstLine, 2, firstLine.Length - 2);
-        //    ReadHeaders(reader);
-        //    BinaryWriter bw = new BinaryWriter(this.Body);
-        //    BinaryReader breader = new BinaryReader(reader.BaseStream);
-        //    bw.Write(breader.ReadBytes(this.ContentLength));
-        //    Body.Seek(0, SeekOrigin.Begin);
-        //    return this;
-
-        //}
-
 
         #region IResponse<HttpResponse> Members
 
 
-        public HttpResponse GetResponse(byte[] requestBytes)
+        public T GetResponse(byte[] requestBytes)
         {
-            return HttpResponse.FromBytes(requestBytes);
+            return HttpResponse<T>.FromBytes(requestBytes);
         }
 
         #endregion
+    }
+
+    public class HttpResponse : HttpResponse<HttpResponse>
+    {
+        public HttpResponse()
+        {
+            Protocol = HttpProtocol.HTTP11;
+        }
+
     }
 }

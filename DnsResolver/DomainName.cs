@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Network.Dns
 {
-    public class DomainName : List<string>, IResponse
+    public class DomainName : List<string>, IServerResponse
     {
         public DomainName() { }
 

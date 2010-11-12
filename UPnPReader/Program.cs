@@ -17,7 +17,7 @@ namespace UPnPReader
         {
             ServiceResolver resolver = new ServiceResolver();
             resolver.ServiceFound += new Network.ZeroConf.ObjectEvent<Network.ZeroConf.IService>(resolver_ServiceFound);
-            resolver.Resolve("urn:schemas-upnp-org:service:RenderingControl:1");
+            resolver.Resolve("urn:schemas-upnp-org:service:ContentDirectory:1");
             //resolver.Resolve("upnp:rootdevice");
             //resolver.Resolve("urn:schemas-upnp-org:service:RenderingControl:1");
             //Thread.Sleep(10000);

@@ -4,19 +4,37 @@ using System.Text;
 
 namespace Network.Rest
 {
-    public class HttpRequestEventArgs : RequestEventArgs<HttpRequest, HttpResponse>
+    public class HttpServerEventArgs : ServerEventArgs<HttpRequest, HttpResponse>
     {
-        public HttpRequestEventArgs()
+        public HttpServerEventArgs()
             : this(new HttpResponse())
         {
         }
 
-        public HttpRequestEventArgs(HttpResponse response)
+        public HttpServerEventArgs(HttpResponse response)
         {
             Response = response;
         }
 
-        public HttpRequestEventArgs(HttpRequest request)
+        public HttpServerEventArgs(HttpRequest request)
+        {
+            Request = request;
+        }
+    }
+
+    public class HttpClientEventArgs : ClientEventArgs<HttpRequest, HttpResponse>
+    {
+        public HttpClientEventArgs()
+            : this(new HttpResponse())
+        {
+        }
+
+        public HttpClientEventArgs(HttpResponse response)
+        {
+            Response = response;
+        }
+
+        public HttpClientEventArgs(HttpRequest request)
         {
             Request = request;
         }

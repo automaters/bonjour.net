@@ -82,6 +82,8 @@ namespace Network.UPnP
 
         public void Resolve()
         {
+            if (Location == null)
+                return;
             WebRequest request = WebRequest.Create(Location);
 
             XmlDocument doc = new XmlDocument();
@@ -163,11 +165,15 @@ namespace Network.UPnP
             if (item.Headers.ContainsKey("NT"))
                 s.Protocol = item.Headers["NT"];
             s.properties = item.Headers;
-            s.Location = new Uri(item.Headers["LOCATION"]);
-            s.properties.Remove("LOCATION");
+            if (item.Headers.ContainsKey("LOCATION"))
+            {
+                s.Location = new Uri(item.Headers["LOCATION"]);
+                s.properties.Remove("LOCATION");
+            }
             s.properties.Remove("ST");
             s.Addresses.Add(new Network.Dns.EndPoint() { });
-            s.Addresses[0].Addresses.Add(IPAddress.Parse(s.Location.Host));
+            if (s.Location != null)
+                s.Addresses[0].Addresses.Add(IPAddress.Parse(s.Location.Host));
             if (item.Headers.ContainsKey("CACHE-CONTROL"))
             {
                 string cacheControl = item.Headers["CACHE-CONTROL"];

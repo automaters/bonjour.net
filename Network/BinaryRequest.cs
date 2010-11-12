@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Network
 {
-    public class BinaryRequest : IRequest<BinaryRequest>
+    public class BinaryRequest : IServerRequest<BinaryRequest>, IClientRequest
     {
         MemoryStream stream = new MemoryStream();
 

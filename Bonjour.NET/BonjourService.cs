@@ -153,7 +153,7 @@ namespace Network.Bonjour
 
         public string Name { get; set; }
 
-        private IDictionary<string, string> properties;
+        protected IDictionary<string, string> properties;
 
         public string this[string key]
         {
@@ -176,7 +176,7 @@ namespace Network.Bonjour
 
         public void Publish()
         {
-            publisher = new MDnsServer(new IPEndPoint(IPAddress.Any, 5353));
+            publisher = new MDnsServer();
             publisher.QueryReceived += publisher_QueryReceived;
             publisher.StartUdp();
             Renew(500);
@@ -200,7 +200,7 @@ namespace Network.Bonjour
                             item.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = 5, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
                         }
 
-                        publisher.Send(item, item.From);
+                        //publisher.Send(item, item.From);
                     }
                 }
             }
@@ -290,11 +290,11 @@ namespace Network.Bonjour
             m.ResponseCode = ResponseCode.NoError;
             foreach (Network.Dns.EndPoint ep in Addresses)
             {
-                foreach (var address in ep.Addresses)
-                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = HostName, Ttl = ttl, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
                 m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.SRV, ResponseData = new Srv() { Port = ep.Port, Target = ep.DomainName } });
                 m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = Network.Dns.Type.TXT, ResponseData = new Txt() { Properties = properties } });
-                m.Authorities.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = ttl, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
+                foreach (var address in ep.Addresses)
+                    m.Additionals.Add(new Answer() { Class = Class.IN, DomainName = Name + "." + Protocol, Ttl = ttl, Type = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Network.Dns.Type.A : Network.Dns.Type.AAAA, ResponseData = new HostAddress() { Address = address } });
+                m.Answers.Add(new Answer() { Class = Class.IN, DomainName = Protocol, Ttl = ttl, Type = Network.Dns.Type.PTR, ResponseData = new Ptr() { DomainName = Name + "." + Protocol } });
             }
 
             publisher.Send(m, m.From);

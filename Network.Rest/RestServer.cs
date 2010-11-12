@@ -12,63 +12,50 @@ namespace Network.Rest
         public RestServer()
             : this(80)
         {
-
+            this.IsStateLess = true;
         }
 
         public RestServer(ushort port)
             : base(port)
         {
+            this.IsStateLess = true;
         }
 
         public RestServer(IPAddress host, ushort port)
             : base(host, port)
         {
+            this.IsStateLess = true;
         }
 
         public RestServer(IPEndPoint host)
             : base(host)
         {
+            this.IsStateLess = true;
         }
 
-        public event EventHandler<HttpRequestEventArgs> HttpRequestReceived;
+        public event EventHandler<HttpServerEventArgs> HttpRequestReceived;
 
         protected override void OnRequestReceived(RequestEventArgs<HttpRequest, HttpResponse> rea)
         {
             base.OnRequestReceived(rea);
             if (HttpRequestReceived != null)
-                HttpRequestReceived(this, (HttpRequestEventArgs)rea);
+                HttpRequestReceived(this, (HttpServerEventArgs)rea);
         }
 
         protected override RequestEventArgs<HttpRequest, HttpResponse> GetEventArgs(HttpRequest request)
         {
-            return new HttpRequestEventArgs() { Request = request };
+            return new HttpServerEventArgs(request) { Response = new HttpResponse() };
         }
 
-        protected override void TreatTcp(RequestEventArgs<HttpRequest, HttpResponse> rea, System.Net.Sockets.TcpClient tcpClient)
+        protected override void Treat(RequestEventArgs<HttpRequest, HttpResponse> rea, Stream client)
         {
             try
             {
-                base.TreatTcp(rea, tcpClient);
+                base.Treat(rea, client);
                 if (rea.Response.Headers.ContainsKey("Connection") && rea.Response.Headers["Connection"] == "Keep-Alive")
                 {
-                    TreatTcp(GetEventArgs(rea.Request), tcpClient);
+                    Treat(GetEventArgs(rea.Request), client);
                 }
-            }
-            catch (NotImplementedException e)
-            {
-                ReplyError(tcpClient, e, HttpStatusCode.NotImplemented);
-            }
-            catch (Exception e)
-            {
-                ReplyError(tcpClient, e, HttpStatusCode.BadRequest);
-            }
-        }
-
-        protected override void TreatUdp(RequestEventArgs<HttpRequest, HttpResponse> rea, System.Net.IPEndPoint client)
-        {
-            try
-            {
-                base.TreatUdp(rea, client);
             }
             catch (NotImplementedException e)
             {
@@ -80,17 +67,7 @@ namespace Network.Rest
             }
         }
 
-        private void ReplyError(TcpClient ep, Exception e, HttpStatusCode code)
-        {
-            HttpResponse response = new HttpResponse();
-            StreamWriter sw = new StreamWriter(response.Body);
-            sw.Write(e.ToString());
-            response.ResponseCode = HttpStatusCode.NotImplemented;
-            response.ResponseMessage = e.Message;
-            Send(response, ep);
-        }
-
-        private void ReplyError(IPEndPoint ep, Exception e, HttpStatusCode code)
+        private void ReplyError(Stream ep, Exception e, HttpStatusCode code)
         {
             HttpResponse response = new HttpResponse();
             StreamWriter sw = new StreamWriter(response.Body);

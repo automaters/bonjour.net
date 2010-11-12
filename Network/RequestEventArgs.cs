@@ -10,7 +10,7 @@ namespace Network
     }
 
     public class RequestEventArgs<RequestType, ResponseType> : EventArgs
-        where ResponseType : IResponse<ResponseType>
+        where ResponseType : IResponse
     {
         public RequestEventArgs()
         {
@@ -21,5 +21,19 @@ namespace Network
         public ResponseType Response { get; set; }
 
         public virtual IPEndPoint Host { get; set; }
+    }
+
+    public class ServerEventArgs<RequestType, ResponseType> : RequestEventArgs<RequestType,ResponseType>
+        where RequestType : IServerRequest<RequestType>
+        where ResponseType : IServerResponse
+    {
+
+    }
+
+    public class ClientEventArgs<RequestType, ResponseType> : RequestEventArgs<RequestType, ResponseType>
+        where RequestType : IClientRequest
+        where ResponseType : IClientResponse<ResponseType>
+    {
+
     }
 }

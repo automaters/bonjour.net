@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Network.Dns;
@@ -39,15 +38,18 @@ namespace Network.ZeroConf
         public static EndPoint GetEndPoint()
         {
             EndPoint ep = new EndPoint();
-            ep.DomainName = Environment.MachineName + ".local.";
+            ep.DomainName = Environment.MachineName + "._local.";
             foreach (NetworkInterface iface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (iface.OperationalStatus == OperationalStatus.Up)
                 {
 
                     foreach (var address in iface.GetIPProperties().UnicastAddresses)
-
+                    {
+                        if (address.Address.IsIPv6LinkLocal || System.Net.IPAddress.IsLoopback(address.Address))
+                            continue;
                         ep.Addresses.Add(address.Address);
+                    }
                 }
             }
             return ep;

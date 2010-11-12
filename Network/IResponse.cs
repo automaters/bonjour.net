@@ -7,11 +7,15 @@ namespace Network
 {
     public interface IResponse
     {
+    }
+
+    public interface IServerResponse : IResponse
+    {
         void WriteTo(BinaryWriter writer);
         byte[] GetBytes();
     }
 
-    public interface IResponse<TResponse> : IResponse
+    public interface IClientResponse<TResponse> : IResponse
     {
         TResponse GetResponse(BinaryReader stream);
         TResponse GetResponse(byte[] requestBytes);

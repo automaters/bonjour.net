@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Network.Dns
 {
-    public class Message : IRequest<Message>, IResponse<Message>
+    public class Message : IServerRequest<Message>, IClientResponse<Message>, IServerResponse, IClientRequest
     {
         public Message()
         {

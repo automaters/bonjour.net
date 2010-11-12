@@ -31,9 +31,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rest", "Network.Res
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Tests", "Network.Tests\Network.Tests.csproj", "{61DB9D8D-F2EA-40DC-8F37-58092891A6A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rtsp", "Network.Rtsp\Network.Rtsp.csproj", "{BAEE9533-AB81-4057-BE2A-17857F1DD809}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Bonjour.DACP", "Network.Bonjour.DACP\Network.Bonjour.DACP.csproj", "{37F066DF-552B-4906-AFBB-5CF93E781E54}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 15
+		SccNumberOfProjects = 17
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs09
 		SccLocalPath0 = .
@@ -82,6 +86,12 @@ Global
 		SccProjectUniqueName14 = SD\\Network.ZeroConf.csproj
 		SccProjectName14 = SD
 		SccLocalPath14 = SD
+		SccProjectUniqueName15 = Network.Rtsp\\Network.Rtsp.csproj
+		SccProjectName15 = Network.Rtsp
+		SccLocalPath15 = Network.Rtsp
+		SccProjectUniqueName16 = Network.Bonjour.DACP\\Network.Bonjour.DACP.csproj
+		SccProjectName16 = Network.Bonjour.DACP
+		SccLocalPath16 = Network.Bonjour.DACP
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -144,6 +154,14 @@ Global
 		{61DB9D8D-F2EA-40DC-8F37-58092891A6A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61DB9D8D-F2EA-40DC-8F37-58092891A6A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61DB9D8D-F2EA-40DC-8F37-58092891A6A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAEE9533-AB81-4057-BE2A-17857F1DD809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAEE9533-AB81-4057-BE2A-17857F1DD809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAEE9533-AB81-4057-BE2A-17857F1DD809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAEE9533-AB81-4057-BE2A-17857F1DD809}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

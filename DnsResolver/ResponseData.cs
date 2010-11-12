@@ -163,7 +163,8 @@ namespace Network.Dns
     {
         public override void WriteTo(System.IO.BinaryWriter writer)
         {
-            writer.Write(new byte[] { 0, 8 });
+
+            writer.Write(Message.ToBytes((ushort)(6 + Target.GetByteCount())));
             writer.Write(Message.ToBytes(Priority));
             writer.Write(Message.ToBytes(Weight));
             writer.Write(Message.ToBytes(Port));

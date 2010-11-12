@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Network.Dns
 {
-    public class Answer : IResponse
+    public class Answer : IServerResponse
     {
         public DomainName DomainName { get; set; }
         public Type Type { get; set; }

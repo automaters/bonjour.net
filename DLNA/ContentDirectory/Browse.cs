@@ -14,7 +14,7 @@ namespace DLNA.ContentDirectory
     {
         public Browse(string connectionString) : base(connectionString) { }
 
-        public override Command<HttpRequestEventArgs, HttpRequest, HttpResponse> Initialize(HttpRequest request, IServiceProvider provider)
+        public override Command<HttpServerEventArgs, HttpRequest, HttpResponse> Initialize(HttpRequest request, IServiceProvider provider)
         {
             throw new NotImplementedException();
         }
@@ -42,7 +42,7 @@ namespace DLNA.ContentDirectory
             return request;
         }
 
-        public override void Execute(HttpRequestEventArgs e)
+        public override void Execute(HttpServerEventArgs e)
         {
             throw new NotImplementedException();
         }

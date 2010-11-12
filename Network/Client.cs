@@ -4,209 +4,205 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading;
 
 namespace Network
 {
-    public abstract class Client<TRequest,TResponse>
-        where TResponse : IResponse<TResponse>,new()
-        where TRequest : IRequest<TRequest>, new()
+    public abstract class Client
     {
-                public Client(ushort port)
-            : this(IPAddress.Any, port)
+        protected Client(Socket s, Server server)
         {
-
+            this.client = s;
+            dataStream = new NetworkStream(s, true);
+            IsUdp = server.IsUdp;
+            IsTcp = server.IsTcp;
         }
 
-        public Client(IPAddress address, ushort port)
-            : this(new IPEndPoint(address, port))
+        public Client(bool isStateLess)
         {
-
+            this.IsStateLess = isStateLess;
         }
 
-        public Client(IPEndPoint host)
+        public void StartTcp(IPEndPoint host)
         {
             Host = host;
+            StartTcp();
         }
-
-        public IPEndPoint Host { get; protected set; }
-
-        protected TcpListener tcp;
-        protected UdpClient udp;
-
-        public bool IsTcp { get; set; }
-        public bool IsUdp { get; set; }
-        public bool IsStarted { get; set; }
-
-        #region Start
 
         public void StartTcp()
         {
-            tcp = new TcpListener(Host);
-            tcp.Start();
-            tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
-            OnStart();
-            IsStarted = true;
+            if (Host == null)
+                throw new NotSupportedException("The host is not initialized.");
+            IsTcp = true;
+            IsUdp = false;
+        }
+
+        public void StartTcp(IPAddress address, ushort port)
+        {
+            StartTcp(new IPEndPoint(address, port));
+        }
+
+        public void StartUdp(IPAddress address, ushort port)
+        {
+            StartUdp(new IPEndPoint(address, port));
+        }
+
+        public void StartUdp(IPEndPoint host)
+        {
+            Host = host;
+            StartUdp();
         }
 
         public void StartUdp()
         {
-            if (IsStarted)
-                throw new NotSupportedException("You cannot start the server twice");
-            if (!IsMulticast(Host.Address))
-                udp = new UdpClient(Host);
-            else
+            if (Host == null)
+                throw new NotSupportedException("The host is not initialized.");
+            IsTcp = false;
+            IsUdp = true;
+        }
+
+
+        public IPEndPoint Host { get; protected set; }
+        public bool IsStateLess { get; set; }
+        protected Socket client;
+        protected internal Stream dataStream;
+
+        protected Stream DataStream { get { return dataStream; } }
+
+
+        public bool IsTcp { get; set; }
+        public bool IsUdp { get; set; }
+
+        protected void JoinMulticastGroup(IPAddress multicastAddr, byte timeToLive)
+        {
+            MulticastOption optionValue;
+            optionValue = client.GetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership) as MulticastOption;
+            if (optionValue == null)
             {
-                udp = new UdpClient();
-                udp.Client.ExclusiveAddressUse = false;
-                udp.Client.Bind(new IPEndPoint(IPAddress.Any, Host.Port));
-                udp.JoinMulticastGroup(Host.Address, 5);
-                udp.BeginReceive(ReceiveUdpRequest, null);
-                OnStart();
-                IsStarted = true;
+                optionValue = new MulticastOption(multicastAddr);
+                client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, optionValue);
+                client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, timeToLive);
             }
         }
 
-        #endregion
+        protected bool expectMultipleResponses = false;
 
-        public event EventHandler Started;
-        public event EventHandler Stopped;
-        public event EventHandler<RequestEventArgs<TRequest, TResponse>> RequestReceived;
+    }
 
-        //protected abstract RequestEventArgs<TRequest, TResponse> GetEventArgs(TRequest request);
-        protected abstract RequestEventArgs<TRequest, TResponse> GetEventArgs(TResponse response);
-
-        private void ReceiveTcpRequest(IAsyncResult result)
+    public abstract class Client<TRequest, TResponse> : Client
+        where TResponse : IClientResponse<TResponse>, new()
+        where TRequest : IClientRequest, new()
+    {
+        protected Client(Socket s, Server server)
+            : base(s, server)
         {
-            try
-            {
-                TcpClient tcpClient = tcp.EndAcceptTcpClient(result);
-                if (IsStarted)
-                    tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
-                RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TResponse().GetResponse(new BinaryReader(tcpClient.GetStream())));
-                rea.Host = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-                TreatTcp(rea, tcpClient);
-            }
-            finally
-            {
-                if (IsStarted)
-                    tcp.BeginAcceptTcpClient(ReceiveTcpRequest, null);
-            }
         }
 
-        protected virtual void TreatTcp(RequestEventArgs<TRequest, TResponse> rea, TcpClient tcpClient)
+        public Client(bool isStateLess)
+            : base(isStateLess)
         {
-            OnRequestReceived(rea);
-            if (rea.Response != null)
-                Send(rea.Response, tcpClient);
         }
 
-        protected virtual void TreatUdp(RequestEventArgs<TRequest, TResponse> rea, IPEndPoint client)
+        public event EventHandler<ClientEventArgs<TRequest, TResponse>> ResponseReceived;
+
+        public void SendOneWay(TRequest request, IPEndPoint endpoint)
         {
-            OnRequestReceived(rea);
-            if (rea.Response != null)
-                Send(rea.Response, client);
+            SendOneWayInternal(request, endpoint);
+            if (IsStateLess && IsTcp)
+            {
+                client.Disconnect(false);
+                client = null;
+            }
+
         }
 
-        private void ReceiveUdpRequest(IAsyncResult result)
+        private void SendOneWayInternal(TRequest request, IPEndPoint endpoint)
         {
-            if (udp.Client == null)
-                return;
-            IPEndPoint remote = new IPEndPoint(IPAddress.Any, 0);
-            byte[] requestBytes;
-            try
+            if (client == null)
             {
-                requestBytes = udp.EndReceive(result, ref remote);
-            }
-            catch (SocketException e)
-            {
-                if (e.ErrorCode == (int)SocketError.ConnectionAborted || e.ErrorCode == (int)SocketError.ConnectionReset)
-                    return;
-                throw e;
-            }
-            finally
-            {
-                if (IsStarted)
-                    udp.BeginReceive(ReceiveUdpRequest, null);
-            }
-            if (requestBytes == null)
-                return;
-            RequestEventArgs<TRequest, TResponse> rea = GetEventArgs(new TResponse().GetResponse(requestBytes));
-            rea.Host = remote;
-            TreatUdp(rea, remote);
-        }
-
-        protected void Send(TResponse response, TcpClient tcpClient)
-        {
-            if (tcpClient.Connected)
-            {
-                using (BinaryWriter writer = new BinaryWriter(tcpClient.GetStream(), Encoding.UTF8))
+                if (IsTcp)
+                    client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                if (IsUdp)
+                    client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                if (Server.IsMulticast(endpoint.Address))
                 {
-                    response.WriteTo(writer);
-                    writer.Flush();
+                    client.Bind(Host);
+                    if (ResponseReceived != null)
+                    {
+                        JoinMulticastGroup(endpoint.Address, 5);
+                        expectMultipleResponses = true;
+                    }
                 }
+                else
+                    client.Connect(endpoint);
+                if (Host == null)
+                    Host = client.LocalEndPoint as IPEndPoint;
+                dataStream = new NetworkStream(client);
+            }
+            BinaryWriter writer = new BinaryWriter(dataStream);
+            request.WriteTo(writer);
+        }
+
+        public TResponse Send(TRequest request)
+        {
+            return Send(request, Host);
+        }
+
+        public TResponse Send(TRequest request, IPEndPoint endpoint)
+        {
+            SendOneWayInternal(request, endpoint);
+            if (expectMultipleResponses)
+            {
+                StartReceive();
+                return default(TResponse);
+            }
+            else
+                return ReceiveResponse();
+        }
+
+        private void StartReceive()
+        {
+            Thread t = new Thread(new ThreadStart(Receive));
+            try
+            {
+                t.Start();
+            }
+            catch (SocketException)
+            {
             }
         }
 
-        protected void Send(TResponse response, IPEndPoint remote)
+        private void Receive()
         {
-            byte[] responseBytes = response.GetBytes();
-            udp.Send(responseBytes, responseBytes.Length, remote);
-        }
-
-        protected void SendRequest(TRequest request, IPEndPoint remote)
-        {
-            byte[] requestBytes = request.GetBytes();
-            udp.Send(requestBytes, requestBytes.Length, remote);        
+            while (expectMultipleResponses)
+            {
+                OnResponseReceived(ReceiveResponse());
+            }
         }
 
         public void Stop()
         {
-            if (IsStarted)
+            expectMultipleResponses = false;
+        }
+
+        protected abstract ClientEventArgs<TRequest, TResponse> GetEventArgs(TResponse response);
+
+        private void OnResponseReceived(TResponse response)
+        {
+            if (ResponseReceived != null)
+                ResponseReceived(this, GetEventArgs(response));
+        }
+
+        private TResponse ReceiveResponse()
+        {
+            BinaryReader reader = new BinaryReader(dataStream);
+            TResponse result = new TResponse().GetResponse(reader);
+            if (IsStateLess && IsTcp)
             {
-                if (IsTcp)
-                    tcp.Stop();
-                if (IsUdp)
-                    udp.Close();
-                OnStop();
-                IsStarted = false;
+                client.Disconnect(false);
+                client = null;
             }
-        }
-
-        public void Restart()
-        {
-            Stop();
-            if (IsTcp)
-                StartTcp();
-            if (IsUdp)
-                StartUdp();
-        }
-
-        protected virtual void OnStart()
-        {
-            if (Started != null)
-                Started(this, EventArgs.Empty);
-        }
-
-        protected virtual void OnStop()
-        {
-            if (Stopped != null)
-                Stopped(this, EventArgs.Empty);
-        }
-
-        protected virtual void OnRequestReceived(RequestEventArgs<TRequest, TResponse> rea)
-        {
-            if (RequestReceived != null)
-                RequestReceived(this, rea);
-        }
-
-        protected bool IsMulticast(IPAddress hostAddress)
-        {
-            if (hostAddress.IsIPv6Multicast)
-                return true;
-            byte[] addressBytes = hostAddress.GetAddressBytes();
-            if (addressBytes[0] >= 224 && addressBytes[0] <= 239)
-                return true;
-            return false;
+            return result;
         }
     }
 }

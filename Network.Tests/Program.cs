@@ -14,7 +14,7 @@ namespace Network.Tests
         {
             RestServer server = new RestServer(IPAddress.Parse("224.0.0.224"), 53186);
             server.RequestReceived += new EventHandler<RequestEventArgs<HttpRequest, HttpResponse>>(server_RequestReceived);
-            server.HttpRequestReceived += new EventHandler<HttpRequestEventArgs>(server_HttpRequestReceived);
+            server.HttpRequestReceived += new EventHandler<HttpServerEventArgs>(server_HttpRequestReceived);
             server.StartUdp();
             Console.WriteLine("Server Started");
             //HttpRequest request = new HttpRequest("http://224.0.0.224:53186/Lucene/");
@@ -37,7 +37,7 @@ namespace Network.Tests
             Console.WriteLine("Server Stopped");
         }
 
-        static void server_HttpRequestReceived(object sender, HttpRequestEventArgs e)
+        static void server_HttpRequestReceived(object sender, HttpServerEventArgs e)
         {
             server_RequestReceived(sender, e);
             Console.WriteLine(e.Request.ToString());
