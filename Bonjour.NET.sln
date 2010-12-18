@@ -35,9 +35,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rtsp", "Network.Rts
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Bonjour.DACP", "Network.Bonjour.DACP\Network.Bonjour.DACP.csproj", "{37F066DF-552B-4906-AFBB-5CF93E781E54}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Bonjour.RAOP", "Network.Bonjour.RAOP\Network.Bonjour.RAOP.csproj", "{96926B74-9F8A-4F5B-B5C4-5D27BF26650F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Rtp", "Network.Rtp\Network.Rtp.csproj", "{4A3A916F-A617-4770-9CF6-291DAC919E93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network.Wol", "Network.Wol\Network.Wol.csproj", "{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 17
+		SccNumberOfProjects = 20
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs09
 		SccLocalPath0 = .
@@ -92,6 +98,15 @@ Global
 		SccProjectUniqueName16 = Network.Bonjour.DACP\\Network.Bonjour.DACP.csproj
 		SccProjectName16 = Network.Bonjour.DACP
 		SccLocalPath16 = Network.Bonjour.DACP
+		SccProjectUniqueName17 = Network.Bonjour.RAOP\\Network.Bonjour.RAOP.csproj
+		SccProjectName17 = Network.Bonjour.RAOP
+		SccLocalPath17 = Network.Bonjour.RAOP
+		SccProjectUniqueName18 = Network.Rtp\\Network.Rtp.csproj
+		SccProjectName18 = Network.Rtp
+		SccLocalPath18 = Network.Rtp
+		SccProjectUniqueName19 = Network.Wol\\Network.Wol.csproj
+		SccProjectName19 = Network.Wol
+		SccLocalPath19 = Network.Wol
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +177,18 @@ Global
 		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37F066DF-552B-4906-AFBB-5CF93E781E54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96926B74-9F8A-4F5B-B5C4-5D27BF26650F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96926B74-9F8A-4F5B-B5C4-5D27BF26650F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96926B74-9F8A-4F5B-B5C4-5D27BF26650F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96926B74-9F8A-4F5B-B5C4-5D27BF26650F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A3A916F-A617-4770-9CF6-291DAC919E93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A3A916F-A617-4770-9CF6-291DAC919E93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A3A916F-A617-4770-9CF6-291DAC919E93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A3A916F-A617-4770-9CF6-291DAC919E93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -127,8 +127,6 @@ namespace Network.Rest
                 LoadContent();
             }
             return this as T;
-            //StreamReader reader = new StreamReader(binaryReader.BaseStream);
-            //return ReadFrom(reader);
         }
 
         protected virtual void LoadContent()

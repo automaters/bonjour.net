@@ -19,8 +19,13 @@ namespace Network
         }
 
         public Client(bool isStateLess)
+            : this(new NetworkConfig(isStateLess))
         {
-            this.IsStateLess = isStateLess;
+        }
+
+        public Client(NetworkConfig config)
+        {
+            this.Configuration = config;
         }
 
         public void StartTcp(IPEndPoint host)
@@ -31,6 +36,8 @@ namespace Network
 
         public void StartTcp()
         {
+            if (!Configuration.SupportsTcp)
+                throw new NotSupportedException("This client is not meant for Tcp");
             if (Host == null)
                 throw new NotSupportedException("The host is not initialized.");
             IsTcp = true;
@@ -55,6 +62,8 @@ namespace Network
 
         public void StartUdp()
         {
+            if (!Configuration.SupportsUdp)
+                throw new NotSupportedException("This client is not meant for UDP");
             if (Host == null)
                 throw new NotSupportedException("The host is not initialized.");
             IsTcp = false;
@@ -63,7 +72,7 @@ namespace Network
 
 
         public IPEndPoint Host { get; protected set; }
-        public bool IsStateLess { get; set; }
+        public NetworkConfig Configuration { get; private set; }
         protected Socket client;
         protected internal Stream dataStream;
 
@@ -103,12 +112,17 @@ namespace Network
         {
         }
 
+        public Client(NetworkConfig configuration)
+            : base(configuration)
+        {
+        }
+
         public event EventHandler<ClientEventArgs<TRequest, TResponse>> ResponseReceived;
 
         public void SendOneWay(TRequest request, IPEndPoint endpoint)
         {
             SendOneWayInternal(request, endpoint);
-            if (IsStateLess && IsTcp)
+            if (Configuration.IsStateLess && IsTcp)
             {
                 client.Disconnect(false);
                 client = null;
@@ -137,10 +151,16 @@ namespace Network
                     client.Connect(endpoint);
                 if (Host == null)
                     Host = client.LocalEndPoint as IPEndPoint;
-                dataStream = new NetworkStream(client);
+                if (!IsUdp)
+                    dataStream = new NetworkStream(client);
             }
-            BinaryWriter writer = new BinaryWriter(dataStream);
-            request.WriteTo(writer);
+            if (dataStream != null)
+            {
+                BinaryWriter writer = new BinaryWriter(dataStream);
+                request.WriteTo(writer);
+            }
+            else
+                client.Send(request.GetBytes());
         }
 
         public TResponse Send(TRequest request)
@@ -151,7 +171,7 @@ namespace Network
         public TResponse Send(TRequest request, IPEndPoint endpoint)
         {
             SendOneWayInternal(request, endpoint);
-            if (expectMultipleResponses)
+            if (expectMultipleResponses && !Configuration.IsOneWayOnly)
             {
                 StartReceive();
                 return default(TResponse);
@@ -195,9 +215,15 @@ namespace Network
 
         private TResponse ReceiveResponse()
         {
+            if (Configuration.IsOneWayOnly)
+            {
+                client.Disconnect(false);
+                client = null;
+                return default(TResponse);
+            }
             BinaryReader reader = new BinaryReader(dataStream);
             TResponse result = new TResponse().GetResponse(reader);
-            if (IsStateLess && IsTcp)
+            if (Configuration.IsStateLess && IsTcp)
             {
                 client.Disconnect(false);
                 client = null;

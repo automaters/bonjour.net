@@ -5,18 +5,17 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{37F066DF-552B-4906-AFBB-5CF93E781E54}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{DAEFDF26-4C41-4CFB-8D94-16DE53F5C30B}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Network.Bonjour.DACP</RootNamespace>
-    <AssemblyName>Network.Bonjour.DACP</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <RootNamespace>Network.Wol</RootNamespace>
+    <AssemblyName>Network.Wol</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,8 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject>Network.Wol.Client</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -45,33 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DacpClient.cs" />
-    <Compile Include="DacpEventArgs.cs" />
-    <Compile Include="Messages\DaapMessage.cs" />
-    <Compile Include="DacpRequest.cs" />
-    <Compile Include="DacpResponse.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WolMessage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DnsResolver\Network.Dns.csproj">
-      <Project>{36528547-53DC-46CD-8C97-1BAE69262B00}</Project>
-      <Name>Network.Dns</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Network.Rest\Network.Rest.csproj">
-      <Project>{13A68F9C-F095-409E-A97D-A05FFCDCE210}</Project>
-      <Name>Network.Rest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Network\Network.csproj">
       <Project>{C05DF064-DD81-49AE-91D2-9D8BBCC76F1F}</Project>
       <Name>Network %28Network\Network%29</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SD\Network.ZeroConf.csproj">
-      <Project>{2B2D41E0-DBC7-4075-873C-394D02448281}</Project>
-      <Name>Network.ZeroConf</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -9,16 +9,24 @@ namespace Network.Bonjour.DACP
     {
         public DaapMessage()
         {
-            Messages = new Dictionary<string, DaapMessage>();
+            Messages = new Dictionary<string, List<DaapMessage>>();
         }
 
-        public DaapMessage this[string name]
+        public List<DaapMessage> this[string name]
         {
-            get { return Messages[name]; }
+            get
+            {
+                List<DaapMessage> result;
+                if (Messages.TryGetValue(name, out result))
+                {
+                    return result;
+                }
+                return null;
+            }
         }
 
         public string Name { get; set; }
-        public Dictionary<string, DaapMessage> Messages { get; set; }
+        public Dictionary<string, List<DaapMessage>> Messages { get; set; }
 
 
         public void ReadFrom(Stream s)
@@ -32,10 +40,15 @@ namespace Network.Bonjour.DACP
             {
                 while (startPosition + length > s.Position)
                 {
-
                     DaapMessage innerMessage = new DaapMessage();
                     innerMessage.ReadFrom(s);
-                    Messages.Add(innerMessage.Name, innerMessage);
+                    List<DaapMessage> messages;
+                    if (!Messages.TryGetValue(innerMessage.Name, out messages))
+                    {
+                        messages = new List<DaapMessage>();
+                        Messages.Add(innerMessage.Name, messages);
+                    }
+                    messages.Add(innerMessage);
                 }
             }
             else
@@ -69,7 +82,8 @@ namespace Network.Bonjour.DACP
                 daapMessage.Name == "apso" ||
                 daapMessage.Name == "prsv" ||
                 daapMessage.Name == "arif" ||
-                daapMessage.Name == "casp"
+                daapMessage.Name == "casp" ||
+                daapMessage.Name == "caci"
                 ;
         }
 
@@ -88,7 +102,6 @@ namespace Network.Bonjour.DACP
         private string ReadString(Stream s, int length)
         {
             return Encoding.ASCII.GetString(ReadBytes(s, length));
-
         }
 
         private string ReadString(Stream s)
@@ -114,6 +127,57 @@ namespace Network.Bonjour.DACP
         public int ToInt32()
         {
             return ToInt32(Value);
+        }
+
+        public override string ToString()
+        {
+            return Encoding.ASCII.GetString(Value);
+        }
+
+        public long ToInt64()
+        {
+            return ToInt64(Value);
+        }
+
+        private long ToInt64(byte[] bytes)
+        {
+            if (bytes.Length != 8)
+                throw new ArgumentException("byte array length must be 8 to be able to parse a long");
+            return (bytes[0] << 56) + (bytes[1] << 48) + (bytes[2] << 40) + (bytes[3] << 32) + (bytes[4] << 24) + (bytes[5] << 16) + (bytes[6] << 8) + (bytes[7]);
+        }
+
+        public static string ToHexString(long p)
+        {
+            return ToHexString(ToBytes(p));
+        }
+
+        public static string ToHexString(byte[] bytes)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in bytes)
+                sb.AppendFormat("{0:x}", b);
+            return sb.ToString();
+        }
+
+        public static byte[] ToBytes(long p)
+        {
+            byte[] bytes = new byte[8];
+            bytes[0] = (byte)(p >> 56);
+            p -= bytes[0] << 56;
+            bytes[1] = (byte)(p >> 48);
+            p -= bytes[1] << 48;
+            bytes[2] = (byte)(p >> 40);
+            p -= bytes[2] << 40;
+            bytes[3] = (byte)(p >> 32);
+            p -= bytes[3] << 32;
+            bytes[4] = (byte)(p >> 24);
+            p -= bytes[4] << 24;
+            bytes[5] = (byte)(p >> 16);
+            p -= bytes[5] << 16;
+            bytes[6] = (byte)(p >> 8);
+            p -= bytes[6] << 8;
+            bytes[7] = (byte)p;
+            return bytes;
         }
     }
 }

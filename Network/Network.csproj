@@ -77,6 +77,7 @@
     <Compile Include="CommandFactory.cs" />
     <Compile Include="IRequest.cs" />
     <Compile Include="IResponse.cs" />
+    <Compile Include="NetworkConfig.cs" />
     <Compile Include="RequestEventArgs.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

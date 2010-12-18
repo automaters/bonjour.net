@@ -65,6 +65,15 @@ namespace Network
             }
         }
 
+        public static byte[] GetBytes(IClientRequest response)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                response.WriteTo(new BinaryWriter(stream));
+                return stream.ToArray();
+            }
+        }
+
         public static string ReadLine(BinaryReader reader)
         {
             bool stopReading = false;

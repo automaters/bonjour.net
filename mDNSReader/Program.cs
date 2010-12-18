@@ -17,6 +17,7 @@ namespace mDNSReader
             bsr.ServiceFound += new Network.ZeroConf.ObjectEvent<Network.ZeroConf.IService>(bsr_ServiceFound);
             bsr.Resolve("_raop._tcp.");
             Console.ReadLine();
+            bsr.Dispose();
             //Service s = new Service();
             //s.AddAddress(new Network.Dns.EndPoint() { DomainName = "ASPERGE.local.", Port = 50508, Addresses = new List<IPAddress>() { IPAddress.Parse("192.168.1.19") } });
             //s.Protocol = "_touch-remote._tcp.local.";
